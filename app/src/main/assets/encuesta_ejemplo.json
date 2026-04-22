@@ -1,0 +1,57 @@
+{
+  "survey_id": "ENAPRES_GLOBAL_2026",
+  "title": "Cuestionario de Supervisión",
+  "config": { "color_resaltado": "#FFF9C4", "min_caracteres_observacion": 10 },
+  "paginas": [
+    {
+      "id_pagina": 0,
+      "seccion_id": "SEC_1",
+      "titulo_seccion": "I. Ubicación",
+      "titulo": "Datos de Campo",
+      "preguntas": [
+        { "variable": "P1_GPS", "type": "gps", "label": "Coordenadas", "required": true, "allow_manual": false },
+        { "variable": "P1_FOTO", "type": "photo", "label": "Foto del frontis", "required": true }
+      ]
+    },
+    {
+      "id_pagina": 1,
+      "seccion_id": "SEC_1",
+      "titulo_seccion": "II. Seguridad",
+      "titulo": "Percepción de Riesgos",
+      "preguntas": [
+        {
+          "variable": "P101",
+          "type": "matrix",
+          "label": "¿Cree usted que puede ser víctima de...?",
+          "required": true,
+          "options": [
+            { "variable": "P101_1", "label": "1. Robo a vivienda" },
+            { "variable": "P101_2", "label": "2. Robo de vehículo" },
+            { "variable": "P101_3", "label": "3. Robo de autopartes" },
+            { "variable": "P101_4", "label": "4. Otro", "is_other": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 2,
+      "seccion_id": "SEC_3",
+      "titulo_seccion": "III. Equipamiento",
+      "titulo": "Materiales del Encuestador",
+      "preguntas": [
+        {
+          "variable": "P301",
+          "type": "multiple_binary",
+          "label": "Seleccione los materiales que porta:",
+          "required": true,
+          "options": [
+            { "variable": "M1", "label": "Tableta con funda" },
+            { "variable": "M2", "label": "Cargador solar" },
+            { "variable": "M3", "label": "Otros materiales", "is_other": true },
+            { "variable": "MN", "label": "Ninguno", "is_none": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

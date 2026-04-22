@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Encuesta Satisfacción ENAPRES</string>
+
+    <!-- Inicio de Strings del Login -->
+    <string name="sup_nac">Supervisión Nacional\nCalidad de Datos</string>
+    <string name="codigo_supervisor">Código de Supervisor</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="ingresar">Ingresar</string>
+    <!-- Fin de Strings del Login -->
+</resources>

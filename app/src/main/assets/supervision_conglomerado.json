@@ -1,0 +1,172 @@
+{
+  "survey_id": "SUPERVISION_CONGLOMERADO_V1",
+  "title": "Supervisión de Conglomerado",
+  "paginas": [
+    {
+      "id_pagina": 0,
+      "titulo": "Sección A: Contexto",
+      "preguntas": [
+        {
+          "variable": "P1",
+          "type": "single",
+          "label": "P1. ¿La supervisión se realizó durante el periodo de ejecución de la encuesta?",
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No", "jump_to_page": 2 }
+          ]
+        },
+        {
+          "variable": "P2",
+          "type": "single",
+          "label": "P2. ¿El encuestador se encontraba en el conglomerado?",
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No", "jump_to_page": 1 }
+          ]
+        },
+        {
+          "variable": "P3",
+          "type": "single",
+          "label": "P3. ¿El encuestador estaba debidamente identificado? (Chaleco/Credencial)",
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 1,
+      "titulo": "Sección A: Justificación",
+      "preguntas": [
+        {
+          "variable": "P4",
+          "type": "text",
+          "label": "P4. ¿Por qué motivo no se encontraba el encuestador?",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id_pagina": 2,
+      "titulo": "Sección B: Seguridad y Amenazas",
+      "preguntas": [
+        {
+          "variable": "P5",
+          "type": "single",
+          "label": "P5. Nivel de seguridad del conglomerado",
+          "options": [
+            { "value": "1", "label": "Muy bajo" },
+            { "value": "2", "label": "Bajo" },
+            { "value": "3", "label": "Medio" },
+            { "value": "4", "label": "Alto" },
+            { "value": "5", "label": "Muy alto" }
+          ]
+        },
+        {
+          "variable": "P6",
+          "type": "multiple_binary",
+          "label": "P6. Principales amenazas observadas",
+          "options": [
+            { "variable": "P6_1", "label": "Ninguna" },
+            { "variable": "P6_2", "label": "Delincuencia" },
+            { "variable": "P6_3", "label": "Pandillas" },
+            { "variable": "P6_4", "label": "Perros sueltos" },
+            { "variable": "P6_5", "label": "Zona de difícil acceso" },
+            { "variable": "P6_6", "label": "Control de acceso" },
+            { "variable": "P6_7", "label": "Barrios cerrados" },
+            { "variable": "P6_8", "label": "Otras" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 3,
+      "titulo": "Sección B: Cartografía I",
+      "preguntas": [
+        {
+          "variable": "P7",
+          "type": "single",
+          "label": "P7. ¿Se recomienda el ingreso de encuestadores en solitario?",
+          "options": [{ "value": "1", "label": "Sí" }, { "value": "2", "label": "No" }]
+        },
+        {
+          "variable": "P8",
+          "type": "single",
+          "label": "P8. ¿Los límites del conglomerado están definidos en el mapa?",
+          "options": [{ "value": "1", "label": "Sí" }, { "value": "2", "label": "No" }]
+        },
+        {
+          "variable": "P9",
+          "type": "single",
+          "label": "P9. ¿El croquis cuenta con puntos de referencia actualizados?",
+          "options": [{ "value": "1", "label": "Sí" }, { "value": "2", "label": "No" }]
+        }
+      ]
+    },
+    {
+      "id_pagina": 4,
+      "titulo": "Sección B: Cartografía II",
+      "preguntas": [
+        {
+          "variable": "P10",
+          "type": "single",
+          "label": "P10. ¿El conglomerado se ubica donde indica el mapa?",
+          "options": [{ "value": "1", "label": "Sí" }, { "value": "2", "label": "No" }]
+        },
+        {
+          "variable": "P11",
+          "type": "gps",
+          "label": "P11. Coordenada de ubicación (GPS)",
+          "fields": [
+            { "variable": "P11_LAT", "label": "Latitud" },
+            { "variable": "P11_LON", "label": "Longitud" },
+            { "variable": "P11_PREC", "label": "Precisión" }
+          ]
+        },
+        {
+          "variable": "P12",
+          "type": "single",
+          "label": "P12. Evaluación general del material cartográfico",
+          "options": [
+            { "value": "1", "label": "Excelente" },
+            { "value": "2", "label": "Regular" },
+            { "value": "3", "label": "Deficiente" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 5,
+      "titulo": "Sección C: Socioeconomía y Cierre",
+      "preguntas": [
+        {
+          "variable": "P13",
+          "type": "single",
+          "label": "P13. Estrato socioeconómico del conglomerado",
+          "options": [
+            { "value": "1", "label": "Muy alto" }, { "value": "2", "label": "Alto" },
+            { "value": "3", "label": "Medio" }, { "value": "4", "label": "Bajo" },
+            { "value": "5", "label": "Muy bajo" }
+          ]
+        },
+        {
+          "variable": "P14",
+          "type": "single",
+          "label": "P14. Nivel de dificultad para acceder al conglomerado",
+          "options": [
+            { "value": "1", "label": "Muy alto" }, { "value": "2", "label": "Alto" },
+            { "value": "3", "label": "Medio" }, { "value": "4", "label": "Bajo" },
+            { "value": "5", "label": "Muy bajo" }
+          ]
+        },
+        {
+          "variable": "OBSERVACIONES",
+          "type": "text",
+          "label": "Observaciones generales",
+          "required": false
+        }
+      ]
+    }
+  ]
+}
