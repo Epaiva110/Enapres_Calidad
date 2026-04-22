@@ -43,7 +43,7 @@ kotlinxSerialization = "1.6.3"
 
 icon_version = "1.7.8"
 
-ksp = "2.3.4" # AJUSTA según Kotlin 2.3.20 (importante)
+ksp = "2.3.6"
 
 [libraries]
 
@@ -139,5 +139,4 @@ jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serializati
 
 googleServices = { id = "com.google.gms.google-services", version.ref = "services" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
-
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
