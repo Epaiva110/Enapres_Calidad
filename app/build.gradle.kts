@@ -7,7 +7,8 @@ plugins {
     alias(libs.plugins.googleServices)
     alias(libs.plugins.crashlytics)
 
-    kotlin("kapt")
+    alias(libs.plugins.ksp)
+
 }
 
 android {
@@ -57,16 +58,15 @@ android {
     }
 }
 
-
-
 dependencies {
 
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.icon.source)
 
     // 🔹 Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
+    //ksp(libs.room.compiler)
 
     // 🔹 Supabase (usa BOM)
     implementation(platform(libs.supabase.bom))
