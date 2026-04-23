@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,6 +33,7 @@ import com.minedu.gob.pe.encuestasatisfaccinenapres.models.LoginState
 import com.minedu.gob.pe.encuestasatisfaccinenapres.models.LoginViewModel
 import com.minedu.gob.pe.encuestasatisfaccinenapres.navigation.Routes
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.utils.SetupMapSystemUI
+import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.utils.hasInternet
 
 // --------------------- SCREEN PRINCIPAL ---------------------
 @Composable
@@ -43,6 +45,10 @@ fun LoginScreen(
 
     val viewModel: LoginViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+
+    val context = LocalContext.current
+
+
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -67,7 +73,8 @@ fun LoginScreen(
                     onPasswordChange = { password = it },
                     isLoginEnabled = isLoginEnabled,
                     onLoginClick = {
-                        viewModel.login(codsup, password)   // 🔥 PASO 6 AQUÍ
+                        val online = hasInternet(context)
+                        viewModel.login(codsup, password,online)   // 🔥 PASO 6 AQUÍ
                     }
                 )
 
