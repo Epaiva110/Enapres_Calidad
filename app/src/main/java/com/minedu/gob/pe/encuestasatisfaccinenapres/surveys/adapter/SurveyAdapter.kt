@@ -317,7 +317,7 @@ fun QuestionMatrix(pregunta: Pregunta, respuestas: Map<String, String>, onValueC
                     shape = RoundedCornerShape(8.dp)
                 )
             }
-            Divider(thickness = 0.5.dp, color = Color.LightGray)
+            HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
         }
     }
 }

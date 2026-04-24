@@ -6,9 +6,10 @@ plugins {
 
     alias(libs.plugins.googleServices)
     alias(libs.plugins.crashlytics)
-
     alias(libs.plugins.ksp)
 
+    //id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -41,17 +42,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_11
-            targetCompatibility = JavaVersion.VERSION_11
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
-
-        kotlin {
-            compilerOptions {
-                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-            }
-        }
+    }
 
     buildFeatures {
         compose = true
@@ -60,15 +55,19 @@ android {
 
 dependencies {
 
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation(libs.navigation3.ui)
+    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+
+    // Icons
     implementation(libs.icon.source)
 
     // 🔹 Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
-    //ksp(libs.room.compiler)
 
-    // 🔹 Supabase (usa BOM)
+    // 🔹 Supabase (BOM)
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.gotrue)
@@ -79,66 +78,56 @@ dependencies {
     // 🔹 Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    //Supabase
-    //implementation(libs.supabase.postgrest)
-    //implementation(libs.supabase.gotrue)
-    //implementation(libs.ktor.client.okhttp)
-
-    // Firebase
+    // 🔹 Firebase
     implementation(platform(libs.firebase.bom))
-
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.realtime)
     implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
 
-    // Compose
+    // 🔹 Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.foundation)
 
-    // Core
+    // 🔹 Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
 
-    // Navigation
+    // 🔹 Navigation
     implementation(libs.androidx.navigation.compose)
 
-    // Images
+    // 🔹 Images
     implementation(libs.coil)
 
-    // Coroutines
+    // 🔹 Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Maps & Location
+    // 🔹 Maps & Location
     implementation(libs.play.services.location)
     implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
 
-    // Networking
+    // 🔹 Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
 
-    // DataStore
+    // 🔹 DataStore
     implementation(libs.datastore)
 
-    // Permissions
+    // 🔹 Permissions
     implementation(libs.accompanist.permissions)
 
-    // Gson
+    // 🔹 Gson
     implementation(libs.gson)
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.compose.ui.unit)
-    implementation(libs.androidx.compose.ui.text)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.room3.common.jvm)
 
-    // Testing
+    // 🔹 Testing
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)
@@ -148,5 +137,5 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
 }
+

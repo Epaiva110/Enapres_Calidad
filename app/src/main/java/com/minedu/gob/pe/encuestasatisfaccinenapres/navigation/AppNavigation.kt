@@ -13,8 +13,6 @@ import com.minedu.gob.pe.encuestasatisfaccinenapres.navigation.core.ex.replace
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens.HomeScreen
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens.MainScreen
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens.MapVisor
-import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens.WelcomeScreen
-
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
