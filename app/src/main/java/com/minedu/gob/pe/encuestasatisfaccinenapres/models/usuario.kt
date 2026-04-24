@@ -2,25 +2,17 @@ package com.minedu.gob.pe.encuestasatisfaccinenapres.models
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.AppRepository
+
 import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Database.AppDataBase
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioRoom
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioEntity
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.UsuarioRepository
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Online.Supabase.Repository.LoginRepository
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.utils.CryptoManager
-
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.from
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlin.compareTo
-import kotlin.div
-import kotlin.text.get
 
 @Serializable
 data class Usuario(
@@ -30,57 +22,19 @@ data class Usuario(
 )
 
 
-class LoginRepository {
 
-    suspend fun login(usuarioInput: String, passwordInput: String): LoginResult {
-        return try {
-
-            val supabase = createSupabaseClient(
-                supabaseUrl = "https://vofuwtljegyjajwjzlll.supabase.co",
-                supabaseKey = "sb_publishable_wWNTLpcXWobt0Bh7IMeopw_pJbxUGVi"
-            ) {
-                install(Postgrest)
-            }
-
-            val result = supabase
-                .from("usuario")
-                .select {
-                    filter {
-                        eq("usuario", usuarioInput)
-                        eq("password", passwordInput)
-                    }
-                }
-                .decodeList<Usuario>()
-
-            if (result.isEmpty()) {
-                return LoginResult.Error("Usuario o contraseña incorrectos")
-            }
-
-            val user = result.first()
-
-            if (!user.activo) {
-                return LoginResult.Inactive(user) // 👈 ya no es error técnico
-            }
-
-            LoginResult.Success(user)
-
-        } catch (e: Exception) {
-            LoginResult.Error(e.message ?: "Error de conexión")
-        }
-    }
-}
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val loginRepository = LoginRepository()
-    private val appRepository: AppRepository
+    private val appRepository: UsuarioRepository
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Idle)
     val state: StateFlow<LoginState> = _state
 
     init {
         val dao = AppDataBase.getDatabase(application).usuarioDao()
-        appRepository = AppRepository(dao)
+        appRepository = UsuarioRepository(dao)
     }
 
     fun login(usuario: String, password: String, isOnline: Boolean) {
@@ -124,9 +78,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun saveUser(user: Usuario, password: String) {
 
-        val encryptedPass = CryptoManager.encrypt(password)
+        val encryptedPass = if (user.activo) {
+            CryptoManager.encrypt(password)
+        } else {
+            "PASSWORD IS NOT AVAILABLE"
+        }
 
-        val roomUser = UsuarioRoom(
+        val roomUser = UsuarioEntity(
             usuario = user.usuario,
             passwordEncrypted = encryptedPass,
             activo = user.activo,
@@ -168,8 +126,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 }
-
-
 
 sealed class LoginState {
     object Idle : LoginState()

@@ -5,13 +5,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao.TaskDao
 import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao.UsuarioDao
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioRoom
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioEntity
+
 import kotlin.jvm.java
 
 @Database(
-    entities = [UsuarioRoom::class],
+    entities = [UsuarioEntity::class],
     version = 1,
     exportSchema = false
 )
