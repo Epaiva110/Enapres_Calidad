@@ -25,6 +25,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SUPABASE_URL", "\"https://vofuwtljegyjajwjzlll.supabase.co\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"sb_publishable_wWNTLpcXWobt0Bh7IMeopw_pJbxUGVi\"")
     }
 
     buildTypes {
@@ -50,12 +53,14 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
 
     implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation(libs.navigation3.ui)
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
 
@@ -70,6 +75,7 @@ dependencies {
     // 🔹 Supabase (BOM)
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.realtime)
     implementation(libs.supabase.gotrue)
 
     // 🔹 Ktor

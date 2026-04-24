@@ -1,9 +1,7 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.dao
 
 import androidx.room.*
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioEntity
-import kotlinx.coroutines.flow.Flow
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.UsuarioEntity
 
 @Dao
 interface UsuarioDao {

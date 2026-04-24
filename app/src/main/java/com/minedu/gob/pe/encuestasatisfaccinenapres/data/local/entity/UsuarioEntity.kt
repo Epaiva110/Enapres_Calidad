@@ -1,4 +1,4 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

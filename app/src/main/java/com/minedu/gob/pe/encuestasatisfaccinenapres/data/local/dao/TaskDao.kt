@@ -1,7 +1,7 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.dao
 
 import androidx.room.*
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
 import kotlinx.coroutines.flow.Flow
 
 @Dao

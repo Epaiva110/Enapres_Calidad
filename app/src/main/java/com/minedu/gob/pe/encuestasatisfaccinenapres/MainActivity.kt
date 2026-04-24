@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.minedu.gob.pe.encuestasatisfaccinenapres.proyecto2.ui.screens.MuestrasScreen
+import com.minedu.gob.pe.encuestasatisfaccinenapres.proyecto2.ui.screens.UsuarioListScreen
 
 import com.minedu.gob.pe.encuestasatisfaccinenapres.navigation.AppNavigation
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens.AddEditTaskScreen
@@ -33,7 +35,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             SupNacTheme {
-                AppNavigation()
+                UserApp()
+                //AppNavigation()
                 //TaskApp()
             }
         }
@@ -77,3 +80,28 @@ fun TaskApp() {
 
 
 
+
+@Composable
+fun UserApp() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "usuarios") {
+        composable("usuarios") {
+            UsuarioListScreen(
+                onVerMuestras = { usuarioId ->
+                    navController.navigate("muestras/$usuarioId")
+                }
+            )
+        }
+        composable(
+            route = "muestras/{usuarioId}",
+            arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+        ) { back ->
+            val usuarioId = back.arguments!!.getInt("usuarioId")
+            MuestrasScreen(
+                usuarioId = usuarioId.toString(),
+                onBack = { navController.popBackStack() }
+            )
+        }
+    }
+}

@@ -1,6 +1,5 @@
 package com.minedu.gob.pe.encuestasatisfaccinenapres.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,8 +15,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Priority
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Priority
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
 import com.minedu.gob.pe.encuestasatisfaccinenapres.viewmodel.FilterType
 import com.minedu.gob.pe.encuestasatisfaccinenapres.viewmodel.TaskViewModel
 

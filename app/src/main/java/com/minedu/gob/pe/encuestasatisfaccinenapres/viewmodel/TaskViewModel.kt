@@ -3,10 +3,10 @@ package com.minedu.gob.pe.encuestasatisfaccinenapres.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.TaskRepository
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Database.TaskDatabase
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Priority
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.TaskRepository
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.database.TaskDatabase
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Priority
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 

@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Priority
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Priority
 import com.minedu.gob.pe.encuestasatisfaccinenapres.viewmodel.TaskViewModel
 
 

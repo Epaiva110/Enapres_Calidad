@@ -4,9 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Database.AppDataBase
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioEntity
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.UsuarioRepository
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.database.AppDataBase
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.UsuarioEntity
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.UsuarioRepository
 import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Online.Supabase.Repository.LoginRepository
 import com.minedu.gob.pe.encuestasatisfaccinenapres.ui.utils.CryptoManager
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,7 +1,7 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local
 
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao.TaskDao
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.dao.TaskDao
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
 import kotlinx.coroutines.flow.Flow
 
 class TaskRepository(private val taskDao: TaskDao) {

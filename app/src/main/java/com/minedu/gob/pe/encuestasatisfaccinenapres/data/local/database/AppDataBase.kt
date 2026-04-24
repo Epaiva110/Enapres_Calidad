@@ -1,12 +1,12 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Database
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao.UsuarioDao
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.UsuarioEntity
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.dao.UsuarioDao
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.UsuarioEntity
 
 import kotlin.jvm.java
 

@@ -1,11 +1,11 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Database
+package com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Entity.Task
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.Local.Dao.TaskDao
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
+import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.dao.TaskDao
 
 @Database(
     entities = [Task::class],
