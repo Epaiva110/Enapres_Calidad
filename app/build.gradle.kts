@@ -13,12 +13,12 @@ plugins {
 }
 
 android {
-    namespace = "com.minedu.gob.pe.encuestasatisfaccinenapres"
+    namespace = "com.minedu.gob.pe.enaprescalidad"
 
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.minedu.gob.pe.encuestasatisfaccinenapres"
+        applicationId = "com.minedu.gob.pe.enaprescalidad"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
@@ -62,6 +62,18 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation(libs.navigation3.ui)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.runtime.saveable)
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.benchmark.traceprocessor)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.benchmark.common)
+    debugImplementation(libs.androidx.ui.tooling)
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
 
     // Icons

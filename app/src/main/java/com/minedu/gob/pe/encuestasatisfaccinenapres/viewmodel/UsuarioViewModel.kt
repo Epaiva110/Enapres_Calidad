@@ -1,9 +1,0 @@
-package com.minedu.gob.pe.encuestasatisfaccinenapres.viewmodel
-
-import com.minedu.gob.pe.encuestasatisfaccinenapres.data.local.entity.Task
-
-data class UsuarioUiState(
-    val tasks: List<Task> = emptyList(),
-)
-
-
