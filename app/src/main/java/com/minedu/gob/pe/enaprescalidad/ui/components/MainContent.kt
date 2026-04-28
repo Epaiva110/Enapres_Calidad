@@ -16,6 +16,7 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.Maintance.Maint
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.analytics.AnalyticsScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.home.HomeScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.settings.SettingsScreen
+import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreen
 
 
 /**
@@ -48,6 +49,7 @@ fun MainContent(
                 "home"      -> HomeScreen()
                 "analytics" -> AnalyticsScreen()
                 "settings"  -> SettingsScreen()
+                //"update"    -> UpdateScreen()
                 else        -> MaintanceScren (Routes.Login)
             }
         }

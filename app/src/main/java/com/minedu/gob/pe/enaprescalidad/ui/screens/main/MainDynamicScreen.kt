@@ -144,7 +144,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.example.sidebarapp.ui.main.MainViewModel
+import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainViewModel
 import com.minedu.gob.pe.enaprescalidad.ui.components.MainContent
 import com.minedu.gob.pe.enaprescalidad.ui.components.SideBar
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.Routes

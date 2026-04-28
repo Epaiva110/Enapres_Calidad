@@ -28,26 +28,18 @@ class UsuarioRepository @Inject constructor(
 
     private suspend fun loginOnline(usuario: String, password: String): LoginResult {
 
-        Log.d("Error_Save", "Iniciando proceso de login...")
-
         return try {
 
             val dto = remote.login(usuario, password)
                 ?: return LoginResult.Error("Usuario o contraseña incorrectos")
 
-            Log.d("Error_Save", "PASO 01")
-
             val domain = dto.toDomain()
-
-            Log.d("Error_Save", "PASO 02")
 
             try {
                 saveUser(domain, password)
             } catch (e: Exception) {
                 Log.e("Error_Save", "Error guardando en Room", e)
             }
-
-            Log.d("Error_Save", "PASO 03")
 
             if (!domain.activo) {
                 LoginResult.Inactive(domain)

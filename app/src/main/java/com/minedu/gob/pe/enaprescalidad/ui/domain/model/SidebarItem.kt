@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 //    //val roles: List<String> = emptyList()
 //)
 
+
 data class SidebarItem(
     val id: String,
     val label: String,
     val icon: ImageVector,
-    val badge: Int? = null,               // para notificaciones futuras
+    val badge: Int? = null,
     val children: List<SidebarItem> = emptyList(),
     val titleMenu: String?
-
 ) {
     val hasChildren: Boolean get() = children.isNotEmpty()
 }

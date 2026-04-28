@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.example.sidebarapp.ui.main.MainViewModel
+import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainViewModel
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.core.ex.back
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.core.ex.navigateTo
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.LoginScreen

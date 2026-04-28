@@ -1,5 +1,6 @@
 package com.minedu.gob.pe.enaprescalidad.data.local.entity
 
+import android.R
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,15 +12,15 @@ data class MuestraConglomeradoEntity(
     val perSup: Int,
     val anio: Int,
     val mes: Int,
-    val conglomerado: Int,
+    val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
     val odeiEnapres: String,
     val usuario: String,
     val fechaCreacion: String,
-    val fechaEnvio: String,
-    val enviado: String,
-    val cerrado: String,
+    val fechaEnvio: String?,
+    val enviado: Boolean,
+    val cerrado: Boolean,
     val tipoMuestra: Int
 )

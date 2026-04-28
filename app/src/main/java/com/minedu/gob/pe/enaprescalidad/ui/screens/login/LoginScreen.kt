@@ -78,7 +78,9 @@ fun LoginScreen(
                 onCodsupChange = viewModel::onCodsupChange,
                 onPasswordChange = viewModel::onPasswordChange,
                 isLoginEnabled = viewModel.isLoginEnabled,
-                onLoginClick = { viewModel.login(hasInternet(context)) }
+                onLoginClick = {
+                    viewModel.login(hasInternet(context))
+                }
             )
 
             LoadingOverlay(visible = state is LoginState.Loading)

@@ -1,4 +1,4 @@
-package com.example.sidebarapp.ui.main
+package com.minedu.gob.pe.enaprescalidad.ui.screens.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,10 +1,9 @@
-package com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto
+package com.minedu.gob.pe.enaprescalidad.data.domain
 
-import android.R
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MuestraConglomeradoDto(
+data class MuestraConglomerado (
     val idcongsup: String,
     val anioSup: Int,
     val mesSup: Int,

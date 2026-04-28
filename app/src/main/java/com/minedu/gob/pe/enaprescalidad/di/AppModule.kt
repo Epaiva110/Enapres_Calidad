@@ -3,6 +3,7 @@ package com.minedu.gob.pe.enaprescalidad.di
 import android.content.Context
 import androidx.room.Room
 import com.minedu.gob.pe.enaprescalidad.BuildConfig
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDaos
 import com.minedu.gob.pe.enaprescalidad.data.local.database.AppDataBase
 import dagger.Module
@@ -45,5 +46,8 @@ object AppModule {
 
     @Provides
     fun provideUsuarioDao(db: AppDataBase): UsuarioDaos = db.usuarioDao()
+
+    @Provides
+    fun provideMuestraConglomeradoDao (db: AppDataBase): MuestraConglomeradoDao = db.muestraconglomeradoDao()
 
 }

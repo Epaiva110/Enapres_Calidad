@@ -1,7 +1,6 @@
-package com.example.sidebarapp.ui.main
+package com.minedu.gob.pe.enaprescalidad.ui.screens.main
 
 import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
-
 
 /**
  * Estado inmutable de la pantalla principal.
@@ -20,5 +19,3 @@ data class MainUiState(
     val selectedItem: SidebarItem?
         get() = sidebarItems.find { it.id == selectedItemId }
 }
-
-
