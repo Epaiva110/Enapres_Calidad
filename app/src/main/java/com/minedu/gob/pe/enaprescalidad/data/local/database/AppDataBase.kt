@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDaos
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
-
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncEntity
 //@Database(
 //    entities = [
 //        UsuarioEntity::class,
@@ -26,15 +27,17 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 @Database(
     entities = [
         UsuarioEntity::class,
-        MuestraConglomeradoEntity::class
+        MuestraConglomeradoEntity::class,
+        SyncEntity::class
                ],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {
 
     abstract fun usuarioDao(): UsuarioDaos
     abstract fun muestraconglomeradoDao(): MuestraConglomeradoDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         @Volatile

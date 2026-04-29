@@ -106,6 +106,8 @@ package com.minedu.gob.pe.enaprescalidad.ui.screens.main
 //}
 //
 
+import android.R.attr.fontWeight
+import android.R.attr.lineHeight
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -114,28 +116,38 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.HiltViewModelFactory
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -274,8 +286,6 @@ fun MainDynamicScreen(
     )
     val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
 
-    val menuTitle = "Control de Calidad de Datos \nENAPRES - 2026"
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         scrimColor = Color.Blue.copy(alpha = 0.3f),
@@ -304,20 +314,43 @@ fun MainDynamicScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(menuTitle) },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
-                            }
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF0D47A1), // azul institucional
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    ),
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically
                         ) {
+//                            Icon(
+//                                Icons.Default.Assessment,
+//                                contentDescription = null,
+//                                modifier = Modifier.size(18.dp)
+//                            )
+                            Spacer(Modifier.width(6.dp))
+
+                            Column{
+                                Text(
+                                    "Control de Calidad de Datos",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "ENAPRES - 2026",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    //color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
-                    }
+                    },
                 )
             }
         ) { paddingValues ->
-
             MainContent(
                 selectedItemId = uiState.selectedItemId,
                 modifier = Modifier

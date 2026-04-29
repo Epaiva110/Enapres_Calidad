@@ -1,6 +1,5 @@
 package com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto
 
-import android.R
 import kotlinx.serialization.Serializable
 
 @Serializable

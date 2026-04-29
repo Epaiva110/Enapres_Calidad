@@ -9,7 +9,7 @@ import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
  * Toda mutación pasa por el ViewModel.
  */
 data class MainUiState(
-    val codsup: String = "",
+    val codsup: String = "Pablo Prueba",
     val sidebarItems: List<SidebarItem> = emptyList(),
     val selectedItemId: String = "",
     val isLoading: Boolean = true,

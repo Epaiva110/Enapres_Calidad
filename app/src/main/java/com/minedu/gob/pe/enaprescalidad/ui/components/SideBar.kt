@@ -1,16 +1,7 @@
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,24 +24,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.MenuOpen
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,9 +49,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
-
-private val SIDEBAR_COLLAPSED_WIDTH = 72.dp
-private val SIDEBAR_EXPANDED_WIDTH  = 220.dp
 
 /**
  * Sidebar animado colapsable/expandible.
@@ -89,14 +68,7 @@ fun SideBar(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isSidebarExpanded by rememberSaveable { mutableStateOf(false) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-
-    val width by animateDpAsState(
-        targetValue = if (isSidebarExpanded) SIDEBAR_EXPANDED_WIDTH else SIDEBAR_COLLAPSED_WIDTH,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "sidebar_width"
-    )
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -108,52 +80,46 @@ fun SideBar(
         )
     }
 
-    Surface(
-        modifier = modifier.width(width),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .width(280.dp)
     ) {
-        Column(modifier = Modifier.fillMaxHeight()) {
 
-            SidebarToggleButton(
-                isExpanded = isSidebarExpanded,
-                onClick = { isSidebarExpanded = !isSidebarExpanded }
-            )
+        SidebarUserHeader(codsup = codsup)
 
-            SidebarUserHeader(
-                codsup = codsup,
-                isExpanded = isSidebarExpanded
-            )
+        HorizontalDivider(
+            Modifier.padding(horizontal = 12.dp),
+            thickness = 0.5.dp
+        )
 
-            HorizontalDivider(Modifier.padding(horizontal = 12.dp), thickness = 0.5.dp)
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(top = 8.dp)
-            ) {
-                items.forEach { item ->
-                    SideBarItem(
-                        item = item,
-                        isSelected = item.id == selectedItemId,
-                        isExpanded = isSidebarExpanded,
-                        isSubmenuExpanded = item.id in expandedItemIds,
-                        onClick = { onItemSelected(item.id) },
-                        onToggleExpand = if (item.hasChildren) {
-                            { onToggleExpand(item.id) }
-                        } else null
-                    )
-                }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 8.dp)
+        ) {
+            items.forEach { item ->
+                SideBarItem(
+                    item = item,
+                    isSelected = item.id == selectedItemId,
+                    isSubmenuExpanded = item.id in expandedItemIds,
+                    onClick = { onItemSelected(item.id) },
+                    onToggleExpand = if (item.hasChildren) {
+                        { onToggleExpand(item.id) }
+                    } else null
+                )
             }
-
-            HorizontalDivider(Modifier.padding(horizontal = 12.dp), thickness = 0.5.dp)
-
-            SidebarLogoutButton(
-                isExpanded = isSidebarExpanded,
-                onClick = { showLogoutDialog = true }
-            )
         }
+
+        HorizontalDivider(
+            Modifier.padding(horizontal = 12.dp),
+            thickness = 0.5.dp
+        )
+
+        SidebarLogoutButton(
+            onClick = { showLogoutDialog = true }
+        )
     }
 }
 
@@ -206,7 +172,6 @@ fun SidebarIcon(
 fun SideBarItem(
     item: SidebarItem,
     isSelected: Boolean,
-    isExpanded: Boolean,
     isSubmenuExpanded: Boolean = false,
     onClick: () -> Unit,
     onToggleExpand: (() -> Unit)? = null,
@@ -219,6 +184,7 @@ fun SideBarItem(
             MaterialTheme.colorScheme.onSurfaceVariant,
         label = "item_color"
     )
+
     val containerColor by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
@@ -227,110 +193,77 @@ fun SideBarItem(
         label = "item_bg"
     )
 
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = { if (!isExpanded) PlainTooltip { Text(item.label) } },
-        state = rememberTooltipState()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .height(48.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(containerColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 2.dp)
-                .height(48.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(containerColor)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SidebarIcon(
-                icon = item.icon,
-                label = item.label,
-                tint = contentColor,
-                badge = item.badge
+
+        SidebarIcon(
+            icon = item.icon,
+            label = item.label,
+            tint = contentColor,
+            badge = item.badge
+        )
+
+        Spacer(Modifier.width(12.dp))
+
+        Text(
+            text = item.label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (item.hasChildren && onToggleExpand != null) {
+            val rotation by animateFloatAsState(
+                targetValue = if (isSubmenuExpanded) 90f else 0f,
+                label = "arrow_rotation"
             )
 
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn(tween(150, delayMillis = 80)) + expandHorizontally(),
-                exit = fadeOut(tween(80)) + shrinkHorizontally()
-            ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = item.label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = contentColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier
+                    .size(16.dp)
+                    .rotate(rotation)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onToggleExpand
                     )
-                    // Flecha para submenús
-                    if (item.hasChildren && onToggleExpand != null) {
-                        val rotation by animateFloatAsState(
-                            targetValue = if (isSubmenuExpanded) 90f else 0f,
-                            label = "arrow_rotation"
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = contentColor,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .rotate(rotation)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = onToggleExpand
-                                )
-                        )
-                    }
-                }
-            }
+            )
         }
     }
 
-    // Submenú expandible
-    if (item.hasChildren) {
-        AnimatedVisibility(visible = isExpanded && isSubmenuExpanded) {
-            Column(modifier = Modifier.padding(start = 16.dp)) {
-                item.children.forEach { child ->
-                    SideBarItem(
-                        item = child,
-                        isSelected = false,
-                        isExpanded = isExpanded,
-                        onClick = onClick
-                    )
-                }
+    if (item.hasChildren && isSubmenuExpanded) {
+        Column(modifier = Modifier.padding(start = 16.dp)) {
+            item.children.forEach { child ->
+                SideBarItem(
+                    item = child,
+                    isSelected = false,
+                    isSubmenuExpanded = false,
+                    onClick = onClick
+                )
             }
         }
     }
 }
 
-// Átomo reutilizable para el toggle
-@Composable
-fun SidebarToggleButton(isExpanded: Boolean, onClick: () -> Unit) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier.padding(8.dp)
-    ) {
-        Icon(
-            imageVector = if (isExpanded)
-                Icons.AutoMirrored.Filled.MenuOpen
-            else
-                Icons.Default.Menu,
-            contentDescription = if (isExpanded) "Colapsar menú" else "Expandir menú"
-        )
-    }
-}
 
 // Header de usuario reutilizable
 @Composable
-fun SidebarUserHeader(codsup: String, isExpanded: Boolean) {
+fun SidebarUserHeader(codsup: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -345,28 +278,23 @@ fun SidebarUserHeader(codsup: String, isExpanded: Boolean) {
                 .padding(4.dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer
         )
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = fadeIn(tween(150, delayMillis = 80)),
-            exit = fadeOut(tween(80))
-        ) {
-            Text(
-                text = codsup,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-        }
+
+        Text(
+            text = codsup,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 10.dp)
+        )
     }
 }
 
 @Composable
-fun SidebarLogoutButton(isExpanded: Boolean, onClick: () -> Unit) {
+fun SidebarLogoutButton(onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .requiredHeight(48.dp) // ← esto lo ancla al ancho del sidebar
+            .requiredHeight(48.dp)
             .clickable(onClick = onClick)
             .padding(horizontal = 13.dp, vertical = 12.dp)
     ) {
@@ -376,18 +304,13 @@ fun SidebarLogoutButton(isExpanded: Boolean, onClick: () -> Unit) {
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(22.dp)
         )
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = fadeIn(tween(150, delayMillis = 80)),
-            exit = fadeOut(tween(80))
-        ) {
-            Text(
-                text = "Cerrar Sesión",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-        }
+
+        Text(
+            text = "Cerrar Sesión",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(start = 12.dp)
+        )
     }
 }
 

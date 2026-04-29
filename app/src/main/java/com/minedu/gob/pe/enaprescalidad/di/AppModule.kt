@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.minedu.gob.pe.enaprescalidad.BuildConfig
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDaos
 import com.minedu.gob.pe.enaprescalidad.data.local.database.AppDataBase
 import dagger.Module
@@ -49,5 +50,10 @@ object AppModule {
 
     @Provides
     fun provideMuestraConglomeradoDao (db: AppDataBase): MuestraConglomeradoDao = db.muestraconglomeradoDao()
+
+    @Provides
+    fun provideSyncDao (db: AppDataBase): SyncDao = db.syncDao()
+
+
 
 }

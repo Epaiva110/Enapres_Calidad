@@ -1,5 +1,6 @@
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,19 +50,16 @@ fun MainContent(
                 "home"      -> HomeScreen()
                 "analytics" -> AnalyticsScreen()
                 "settings"  -> SettingsScreen()
-                //"update"    -> UpdateScreen()
+                "CargaMarco"    -> UpdateScreen("SUP001")
                 else        -> MaintanceScren (Routes.Login)
             }
         }
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun MainContentPreview() {
-    MainContent(
-        selectedItemId = "dfgdgg",
-        modifier = Modifier.fillMaxSize()
-    )
+sealed class DrawerScreen(val id: String) {
+    object Home : DrawerScreen("home")
+    object Analytics : DrawerScreen("analytics")
+    object Settings : DrawerScreen("settings")
+    object CargaMarco : DrawerScreen("CargaMarco")
 }
