@@ -50,7 +50,7 @@ fun MainContent(
                 "home"      -> HomeScreen()
                 "analytics" -> AnalyticsScreen()
                 "settings"  -> SettingsScreen()
-                "CargaMarco"    -> UpdateScreen("SUP001")
+                "CargaMarco"    -> UpdateScreen("SUP002")
                 else        -> MaintanceScren (Routes.Login)
             }
         }

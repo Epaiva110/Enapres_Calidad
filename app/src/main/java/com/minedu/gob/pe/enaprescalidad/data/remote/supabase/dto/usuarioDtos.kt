@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 data class UsuarioDto(
     val usuario: String,
     val password: String,
-    val activo: Boolean = true
+    val activo: Boolean,
+    val nombreusu: String,
+    val role: String
 )
 

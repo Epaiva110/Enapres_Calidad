@@ -23,7 +23,6 @@ data class MuestraConglomerado (
     val tipoMuestra: Int
 )
 
-
 //@Serializable
 //data class MuestraVivienda (
 //    val idcongsup: String,
@@ -45,7 +44,7 @@ data class MuestraConglomerado (
 //    val tipoMuestra: Int
 //)
 //
-//
+
 //@Serializable
 //data class MuestraReentrevista (
 //    val idcongsup: String,

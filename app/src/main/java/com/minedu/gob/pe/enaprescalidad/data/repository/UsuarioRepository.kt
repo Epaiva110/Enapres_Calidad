@@ -6,6 +6,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.UsuarioLo
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.UsuarioRemoteDataSource
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
+import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainUiState
 import com.minedu.gob.pe.enaprescalidad.utils.CryptoManager
 
 import javax.inject.Inject
@@ -81,14 +82,14 @@ class UsuarioRepository @Inject constructor(
     }
 
     private suspend fun saveUser(user: Usuario, password: String) {
-
         val entity = UsuarioEntity(
             usuario = user.usuario,
             password = crypto.encrypt(password),
             activo = user.activo,
+            nombreusu = user.nombreusu,
+            role = user.role,
             lastUpdated = System.currentTimeMillis()
         )
-
         local.save(entity)
     }
 

@@ -9,7 +9,7 @@ sealed class Routes : NavKey {
     @Serializable data object Splash : Routes()
     @Serializable data object Login : Routes()
     @Serializable data class Welcome(val supervisorId: String) : Routes()
-    @Serializable data class MainDynamic(val supervisorId: String) : Routes()
+    @Serializable data class MainDynamic(val codigo: String, val nombre: String, val rol: String) : Routes()
 
 }
 

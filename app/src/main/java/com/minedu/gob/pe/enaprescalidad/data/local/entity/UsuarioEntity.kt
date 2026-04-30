@@ -8,5 +8,7 @@ data class UsuarioEntity(
     @PrimaryKey val usuario: String,
     val password: String,
     val activo: Boolean,
+    val nombreusu: String,
+    val role: String,
     val lastUpdated: Long
 )

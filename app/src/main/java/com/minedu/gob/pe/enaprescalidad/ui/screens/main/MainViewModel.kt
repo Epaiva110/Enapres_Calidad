@@ -3,6 +3,8 @@ package com.minedu.gob.pe.enaprescalidad.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minedu.gob.pe.enaprescalidad.ui.domain.usecase.GetSidebarItemsUseCase
+import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
+import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getSidebarItems: GetSidebarItemsUseCase
+    private val getSidebarItems: GetSidebarItemsUseCase,
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
@@ -29,9 +32,7 @@ class MainViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         sidebarItems = items,
-                        // Selecciona el primero por defecto
                         selectedItemId = items.firstOrNull()?.id ?: "",
-                        //isLoading = false
                     )
                 }
             }

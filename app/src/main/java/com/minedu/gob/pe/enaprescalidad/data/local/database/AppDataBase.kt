@@ -30,7 +30,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncEntity
         MuestraConglomeradoEntity::class,
         SyncEntity::class
                ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {

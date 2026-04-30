@@ -6,5 +6,7 @@ import kotlinx.serialization.Serializable
 data class Usuario(
     val usuario: String,
     val password: String,
-    val activo: Boolean
+    val activo: Boolean,
+    val nombreusu: String,
+    val role: String
 )

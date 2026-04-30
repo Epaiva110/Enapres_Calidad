@@ -161,6 +161,8 @@ import com.minedu.gob.pe.enaprescalidad.ui.components.MainContent
 import com.minedu.gob.pe.enaprescalidad.ui.components.SideBar
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.Routes
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.core.ex.navigateTo
+import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
+import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 import perfetto.protos.UiState
@@ -278,13 +280,17 @@ import perfetto.protos.UiState
 fun MainDynamicScreen(
     viewModelMain: MainViewModel = hiltViewModel(),
     viewModelLogin: LoginViewModel = hiltViewModel(),
-    backStack: NavBackStack<NavKey>
+    backStack: NavBackStack<NavKey>,
+    sessionManager: SessionManager = SessionManager()
 ) {
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
     )
     val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
+    val user by sessionManager.user.collectAsStateWithLifecycle()
+
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -292,7 +298,7 @@ fun MainDynamicScreen(
         drawerContent = {
             ModalDrawerSheet {
                 SideBar(
-                    codsup = uiState.codsup,
+                    codsup = user?.codsup ?: "",
                     items = uiState.sidebarItems,
                     selectedItemId = uiState.selectedItemId,
                     expandedItemIds = uiState.expandedItemIds,
