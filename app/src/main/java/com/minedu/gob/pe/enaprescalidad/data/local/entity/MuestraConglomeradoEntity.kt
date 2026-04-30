@@ -1,6 +1,5 @@
 package com.minedu.gob.pe.enaprescalidad.data.local.entity
 
-import android.R
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -48,7 +47,7 @@ data class MuestraViviendaEntity(
 )
 
 
-@Entity(tableName = "MuestraConglomerado")
+@Entity(tableName = "MuestraReentrevista")
 data class MuestraReentrevistaEntity(
     @PrimaryKey val idcongsup: String,
     val anioSup: Int,

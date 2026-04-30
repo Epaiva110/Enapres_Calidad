@@ -33,7 +33,7 @@ fun SplashScreen(onNavigate: (Routes) -> Unit) {
 
         if (isLogged) {
             // IMPORTANTE: Ahora Main requiere el ID
-            onNavigate(Routes.MainDynamic(codigo = savedId, nombre = "", rol = ""))
+            onNavigate(Routes.MainDynamic)
         } else {
             onNavigate(Routes.Login)
         }

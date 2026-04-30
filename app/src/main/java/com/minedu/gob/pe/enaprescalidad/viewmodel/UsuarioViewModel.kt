@@ -27,8 +27,10 @@ class LoginViewModel @Inject constructor(
 
     val state = _state.asStateFlow()
 
-    private val _uiState = MutableStateFlow(MainUiState())
-    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+//    private val _uiState = MutableStateFlow(MainUiState())
+//    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    val currentUser = sessionManager.user
 
 
     // ── Form state vive aquí, no en la Screen ──
@@ -60,7 +62,7 @@ class LoginViewModel @Inject constructor(
                         )
                     )
 
-                    LoginState.Success(result.user.usuario, result.user.nombreusu, result.user.role)
+                    LoginState.Success
                 }
                 is LoginResult.Inactive -> LoginState.Error("Usuario inactivo")
                 is LoginResult.Error -> LoginState.Error(result.message)
@@ -90,6 +92,6 @@ class LoginViewModel @Inject constructor(
 sealed class LoginState {
     object Idle : LoginState()
     object Loading : LoginState()
-    data class Success(val user: String, val name: String, val role: String) : LoginState()
+    object Success : LoginState()
     data class Error(val message: String) : LoginState()
 }

@@ -281,14 +281,13 @@ fun MainDynamicScreen(
     viewModelMain: MainViewModel = hiltViewModel(),
     viewModelLogin: LoginViewModel = hiltViewModel(),
     backStack: NavBackStack<NavKey>,
-    sessionManager: SessionManager = SessionManager()
 ) {
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(
         initialValue = DrawerValue.Closed
     )
     val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
-    val user by sessionManager.user.collectAsStateWithLifecycle()
+    val user by viewModelLogin.currentUser.collectAsStateWithLifecycle()
 
 
 
@@ -298,7 +297,9 @@ fun MainDynamicScreen(
         drawerContent = {
             ModalDrawerSheet {
                 SideBar(
-                    codsup = user?.codsup ?: "",
+                    usuario = user?.codsup ?: "",
+                    nombre = user?.name ?: "",
+                    role = user?.role ?: "",
                     items = uiState.sidebarItems,
                     selectedItemId = uiState.selectedItemId,
                     expandedItemIds = uiState.expandedItemIds,

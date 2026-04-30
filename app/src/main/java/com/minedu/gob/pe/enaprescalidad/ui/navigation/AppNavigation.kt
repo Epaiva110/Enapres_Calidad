@@ -37,10 +37,10 @@ fun AppNavigation() {
 
             entry<Routes.Login> {
                 LoginScreen(
-                    onLoginSuccess = { codigo, nombre, rol ->
+                    onLoginSuccess = {
                         backStack.clear()
                         backStack.navigateTo(
-                            Routes.MainDynamic(codigo, nombre, rol)
+                            Routes.MainDynamic
                         )
                     }
                 )

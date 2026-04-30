@@ -39,7 +39,7 @@ import com.minedu.gob.pe.enaprescalidad.utils.SetupMapSystemUI
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String, String, String) -> Unit,
+    onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     SetupMapSystemUI()
@@ -51,7 +51,7 @@ fun LoginScreen(
     LaunchedEffect(state) {
         when (val s = state) {
             is LoginState.Success -> {
-                onLoginSuccess(s.user,s.name,s.role)
+                onLoginSuccess()
             }
             is LoginState.Error -> {
                 snackbarHostState.showSnackbar(s.message)

@@ -1,6 +1,5 @@
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
-import androidx.benchmark.traceprocessor.rowOf
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -61,7 +60,9 @@ import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
 
 @Composable
 fun SideBar(
-    codsup: String,
+    usuario: String,
+    nombre: String,
+    role: String,
     items: List<SidebarItem>,
     selectedItemId: String,
     expandedItemIds: Set<String>,
@@ -88,7 +89,7 @@ fun SideBar(
             .width(280.dp)
     ) {
 
-        SidebarUserHeader(codsup = codsup)
+        SidebarUserHeader(usuario = usuario, nombre = nombre, role = role)
 
         HorizontalDivider(
             Modifier.padding(horizontal = 12.dp),
@@ -265,7 +266,7 @@ fun SideBarItem(
 
 // Header de usuario reutilizable
 @Composable
-fun SidebarUserHeader(codsup: String) {
+fun SidebarUserHeader(usuario: String, nombre: String, role: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -283,19 +284,19 @@ fun SidebarUserHeader(codsup: String) {
         Column() {
 
             Text(
-                text = codsup,
+                text = usuario,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(start = 10.dp)
             )
             Text(
-                text = codsup,
+                text = nombre,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(start = 10.dp)
             )
             Text(
-                text = codsup,
+                text = role,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(start = 10.dp)
@@ -304,11 +305,6 @@ fun SidebarUserHeader(codsup: String) {
     }
 }
 
-@Preview
-@Composable
-fun SideBarPreview() {
-    SidebarUserHeader("hollaaa")
-}
 
 @Composable
 fun SidebarLogoutButton(onClick: () -> Unit) {
