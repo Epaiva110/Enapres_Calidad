@@ -1,10 +1,10 @@
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -105,12 +107,11 @@ fun SideBar(
             items.forEach { item ->
                 SideBarItem(
                     item = item,
-                    isSelected = item.id == selectedItemId,
-                    isSubmenuExpanded = item.id in expandedItemIds,
-                    onClick = { onItemSelected(item.id) },
-                    onToggleExpand = if (item.hasChildren) {
-                        { onToggleExpand(item.id) }
-                    } else null
+                    selectedItemId = selectedItemId,
+                    expandedItemIds = expandedItemIds,
+                    onItemSelected = onItemSelected,
+                    onToggleExpand = onToggleExpand,
+                    depth = 0   // nivel de profundidad para el padding
                 )
             }
         }
@@ -170,136 +171,143 @@ fun SidebarIcon(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SideBarItem(
     item: SidebarItem,
-    isSelected: Boolean,
-    isSubmenuExpanded: Boolean = false,
-    onClick: () -> Unit,
-    onToggleExpand: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    selectedItemId: String,
+    expandedItemIds: Set<String>,
+    onItemSelected: (String) -> Unit,
+    onToggleExpand: (String) -> Unit,
+    depth: Int = 0
 ) {
+    val isSelected = item.id == selectedItemId
+    val isExpanded = item.id in expandedItemIds
+
+    // Nueva lógica: ¿Algún hijo de este ítem está seleccionado?
+    val hasSelectedChild = remember(item, selectedItemId) {
+        item.children.any { it.id == selectedItemId } ||
+                item.children.flatMap { it.children }.any { it.id == selectedItemId } // Para niveles más profundos
+    }
+
+    // Color de contenido: Se ilumina si está seleccionado O si tiene un hijo seleccionado y está contraído
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected)
-            MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = when {
+            isSelected -> MaterialTheme.colorScheme.primary
+            hasSelectedChild && !isExpanded -> MaterialTheme.colorScheme.primary // Iluminar si el hijo está oculto
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
         label = "item_color"
     )
 
-    val containerColor by animateColorAsState(
-        targetValue = if (isSelected)
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-        else
-            Color.Transparent,
-        label = "item_bg"
-    )
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-            .height(48.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(containerColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        SidebarIcon(
-            icon = item.icon,
-            label = item.label,
-            tint = contentColor,
-            badge = item.badge
-        )
-
-        Spacer(Modifier.width(12.dp))
-
-        Text(
-            text = item.label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = contentColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-
-        if (item.hasChildren && onToggleExpand != null) {
-            val rotation by animateFloatAsState(
-                targetValue = if (isSubmenuExpanded) 90f else 0f,
-                label = "arrow_rotation"
-            )
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier
-                    .size(16.dp)
-                    .rotate(rotation)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = onToggleExpand
-                    )
-            )
-        }
-    }
-
-    if (item.hasChildren && isSubmenuExpanded) {
-        Column(modifier = Modifier.padding(start = 16.dp)) {
-            item.children.forEach { child ->
-                SideBarItem(
-                    item = child,
-                    isSelected = false,
-                    isSubmenuExpanded = false,
-                    onClick = onClick
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .height(48.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(
+                    if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    else Color.Transparent
                 )
+                .clickable {
+                    if (item.hasChildren) onToggleExpand(item.id)
+                    else onItemSelected(item.id)
+                }
+                .padding(start = (16 + (depth * 16)).dp, end = 12.dp), // Indentación dinámica
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SidebarIcon(
+                icon = item.icon,
+                label = item.label,
+                tint = contentColor,
+                badge = item.badge
+            )
+
+            Text(
+                text = item.label,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = contentColor
+            )
+
+            if (item.hasChildren) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // INDICADOR VISUAL: Si está contraído y tiene un hijo seleccionado, mostrar un punto
+                    if (hasSelectedChild && !isExpanded) {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                    }
+
+                    val rotation by animateFloatAsState(if (isExpanded) 180f else 0f)
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(18.dp).rotate(rotation)
+                    )
+                }
+            }
+        }
+
+        // Animación de entrada para los hijos (opcional pero recomendada)
+        AnimatedVisibility(visible = item.hasChildren && isExpanded) {
+            Column {
+                item.children.forEach { child ->
+                    SideBarItem(child, selectedItemId, expandedItemIds, onItemSelected, onToggleExpand, depth + 1)
+                }
             }
         }
     }
 }
 
-
-// Header de usuario reutilizable
 @Composable
 fun SidebarUserHeader(usuario: String, nombre: String, role: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp) // Más aire
     ) {
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier
-                .size(30.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(4.dp),
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-        Column() {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(48.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
 
-            Text(
-                text = usuario,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                modifier = Modifier.padding(start = 10.dp)
-            )
+        Column(modifier = Modifier.padding(start = 12.dp)) {
             Text(
                 text = nombre,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.titleSmall, // Más prominente
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                modifier = Modifier.padding(start = 10.dp)
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = role,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                modifier = Modifier.padding(start = 10.dp)
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = usuario,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

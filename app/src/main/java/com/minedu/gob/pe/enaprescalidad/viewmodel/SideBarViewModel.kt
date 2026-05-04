@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-// SidebarUiState.kt
 data class SidebarUiState(
     val items: List<SidebarItem> = emptyList(),
     val itemsFiltered: List<SidebarItem> = emptyList(),
@@ -23,7 +22,6 @@ data class SidebarUiState(
     val isLoading: Boolean = false
 )
 
-// SidebarViewModel.kt
 @HiltViewModel
 class SidebarViewModel @Inject constructor(
     getSidebarItems: GetSidebarItemsUseCase

@@ -26,13 +26,25 @@ import androidx.compose.ui.graphics.vector.ImageVector
 //)
 
 
+//data class SidebarItem(
+//    val id: String,
+//    val label: String,
+//    val icon: ImageVector,
+//    val badge: Int? = null,
+//    val children: List<SidebarItem> = emptyList(),
+//    val titleMenu: String?
+//) {
+//    val hasChildren: Boolean get() = children.isNotEmpty()
+//}
 data class SidebarItem(
     val id: String,
     val label: String,
     val icon: ImageVector,
     val badge: Int? = null,
     val children: List<SidebarItem> = emptyList(),
-    val titleMenu: String?
+    val titleMenu: String? = null,
+    val route: String? = null   // null = solo expande, non-null = navega
 ) {
     val hasChildren: Boolean get() = children.isNotEmpty()
+    val isNavigable: Boolean get() = route != null
 }

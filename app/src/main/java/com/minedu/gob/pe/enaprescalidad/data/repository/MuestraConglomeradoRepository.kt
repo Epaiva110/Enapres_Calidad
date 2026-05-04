@@ -44,6 +44,23 @@ class MuestraConglomeradoRepository @Inject constructor(
     private val local: MuestraLocalDataSource,
 ) {
 
+//    suspend fun syncMuestraConglomerado2(usuario: String, isOnline: Boolean): MuestraResult {
+//        if (!isOnline) return MuestraResult.Error("No hay internet")
+//        return try {
+//            val data = remote.getMuestraConglomeradoUsuario(usuario)
+//            if (data.isEmpty()) return MuestraResult.Empty()
+//            local.saveMuestrasConglomerado(data.map { it.toEntity() })
+//            cargaDao.deleteByTipo("CONGLOMERADO")
+//            cargaDao.insertAll(data.toCargaEntities("CONGLOMERADO"))
+//            MuestraResult.Success(data)
+//        } catch (e: Exception) {
+//            MuestraResult.Error("Error: ${e.message}")
+//        }
+//    }
+
+// Igual para syncMuestraVivienda → remote.getMuestraViviendaUsuario
+// Igual para syncReentrevista    → remote.getMuestraReentrevistaUsuario
+
     suspend fun syncMuestraConglomerado(
         usuario: String,
         isOnline: Boolean

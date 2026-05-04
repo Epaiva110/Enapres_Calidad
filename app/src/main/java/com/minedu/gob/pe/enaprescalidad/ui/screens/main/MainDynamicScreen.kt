@@ -106,25 +106,14 @@ package com.minedu.gob.pe.enaprescalidad.ui.screens.main
 //}
 //
 
-import android.R.attr.fontWeight
-import android.R.attr.lineHeight
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -137,9 +126,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -147,26 +136,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import androidx.hilt.lifecycle.viewmodel.HiltViewModelFactory
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainViewModel
 import com.minedu.gob.pe.enaprescalidad.ui.components.MainContent
 import com.minedu.gob.pe.enaprescalidad.ui.components.SideBar
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.Routes
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.core.ex.navigateTo
-import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
-import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
-import perfetto.protos.UiState
-
 
 /**
  * Pantalla raíz del layout principal.
@@ -178,102 +157,6 @@ import perfetto.protos.UiState
  *
  * No contiene lógica de negocio.
  */
-//@Composable
-//fun MainDynamicScreen(
-//    viewModelMain: MainViewModel = hiltViewModel(),
-//    viewModelLogin: LoginViewModel = hiltViewModel(),
-//    backStack: NavBackStack<NavKey>
-//) {
-//    val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
-//
-//    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
-//        Row (
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValues)
-//        ) {
-//            SideBar(
-//                codsup = "uiState.codsup",
-//                items = uiState.sidebarItems,
-//                selectedItemId = uiState.selectedItemId,
-//                expandedItemIds = uiState.expandedItemIds,
-//                onItemSelected = viewModelMain::onItemSelected,
-//                onToggleExpand = viewModelMain::onToggleExpand,
-//                modifier = Modifier.fillMaxHeight(),
-//                onLogout = {
-//                    viewModelMain.onLogout()
-//                    viewModelLogin.logout()
-//                    backStack.clear()
-//                    backStack.navigateTo(Routes.Login)
-//                }
-//            )
-//
-//            MainContent(
-//                selectedItemId = uiState.selectedItemId,
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .fillMaxHeight()
-//            )
-//        }
-//    }
-//}
-
-
-//@Composable
-//fun MainDynamicScreen(
-//    viewModelMain: MainViewModel = hiltViewModel(),
-//    viewModelLogin: LoginViewModel = hiltViewModel(),
-//    backStack: NavBackStack<NavKey>
-//) {
-//    val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
-//
-//
-//    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
-//        // Donde uses el Sidebar, probablemente tu MainScreen
-//        Box (modifier = Modifier.fillMaxSize()) {
-//
-//            // ── Contenido principal (no se mueve) ──
-//            MainContent(
-//                selectedItemId = uiState.selectedItemId,
-//                modifier = Modifier.fillMaxSize()
-//            )
-//
-//            // ── Scrim: fondo semitransparente al expandir ──
-//
-//            AnimatedVisibility(
-//                visible = isSidebarExpanded,
-//                enter = fadeIn(),
-//                exit = fadeOut()
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(Color.Black.copy(alpha = 0.3f))
-//                        .clickable { isSidebarExpanded = false }   // cierra al tocar afuera
-//                )
-//            }
-//
-//            // ── Sidebar encima de todo ──
-//            SideBar(
-//                codsup = uiState.codsup,
-//                items = uiState.sidebarItems,
-//                selectedItemId = uiState.selectedItemId,
-//                expandedItemIds = uiState.expandedItemIds,
-//                onItemSelected = viewModelMain::onItemSelected,
-//                onToggleExpand = viewModelMain::onToggleExpand,
-//                modifier = Modifier
-//                    .fillMaxHeight()
-//                    .zIndex(1f),                                   // encima del contenido
-//                onLogout = {
-//                    viewModelMain.onLogout()
-//                    viewModelLogin.logout()
-//                    backStack.clear()
-//                    backStack.navigateTo(Routes.Login)
-//                }
-//            )
-//        }
-//    }
-//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -288,8 +171,13 @@ fun MainDynamicScreen(
     )
     val uiState by viewModelMain.uiState.collectAsStateWithLifecycle()
     val user by viewModelLogin.currentUser.collectAsStateWithLifecycle()
+    val currentTitle by viewModelMain.currentTitle.collectAsStateWithLifecycle()
 
-
+    LaunchedEffect(drawerState.currentValue) {
+        if (drawerState.currentValue == DrawerValue.Closed) {
+            viewModelMain.onDrawerClosed()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -338,7 +226,7 @@ fun MainDynamicScreen(
 
                             Column{
                                 Text(
-                                    "Control de Calidad de Datos",
+                                    text = currentTitle,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
