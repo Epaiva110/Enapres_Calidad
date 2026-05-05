@@ -34,9 +34,8 @@ import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import com.minedu.gob.pe.enaprescalidad.R
-import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import com.minedu.gob.pe.enaprescalidad.utils.SetupMapSystemUI
-import com.minedu.gob.pe.enaprescalidad.viewmodel.MarcoTrabajoViewModel
+
 
 
 @Composable

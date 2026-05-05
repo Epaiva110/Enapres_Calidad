@@ -13,4 +13,8 @@ class MarcoTrabajoRDS @Inject constructor(
     suspend fun getMarcoTrabajo(user: String): List<MarcoTrabajoDto> {
         return api.getMarcoTrabajo(user)
     }
+
+    suspend fun getMarcoTrabajoTipo(user: String, tipo: String): List<MarcoTrabajoDto> {
+        return api.getMarcoTrabajoTipo(user, tipo)
+    }
 }

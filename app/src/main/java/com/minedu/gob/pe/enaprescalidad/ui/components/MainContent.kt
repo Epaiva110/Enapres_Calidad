@@ -1,27 +1,39 @@
+// ── Cambio en MainContent.kt ──────────────────────────────────────────────────
+//
+// Antes:
+//   "CargaMarco" -> UpdateScreen(
+//       isSyncing = false,
+//       onSyncAllData = { },
+//       onSyncGroup = {},
+//       onSyncIndividual = {}
+//   )
+//
+// Después:
+//   "CargaMarco" -> UpdateScreen()
+//
+// El nuevo UpdateScreen ya obtiene su propio ViewModel internamente,
+// por lo que MainContent no necesita pasar ningún parámetro.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.Routes
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.Maintance.MaintanceScren
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.analytics.AnalyticsScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.home.HomeScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.settings.SettingsScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreen
-
-
-//import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreenPreview
-
 
 /**
  * Área de contenido principal.
@@ -37,7 +49,7 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateSc
 @Composable
 fun MainContent(
     selectedItemId: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         AnimatedContent(
@@ -47,27 +59,23 @@ fun MainContent(
                 (fadeIn(tween(220, delayMillis = 60)) +
                         scaleIn(initialScale = 0.96f, animationSpec = tween(220, delayMillis = 60)))
                     .togetherWith(fadeOut(tween(90)))
-            }
+            },
         ) { itemId ->
             when (itemId) {
-                "home"      -> HomeScreen()
-                "analytics" -> AnalyticsScreen()
-                "settings"  -> SettingsScreen()
-                "CargaMarco" -> UpdateScreen(
-                    isSyncing = false,
-                    onSyncAllData = { },
-                    onSyncGroup = {},
-                    onSyncIndividual = {})
-                //"verificacionConglomerado" -> UpdateScreenPreview22()
-                else        -> MaintanceScren (Routes.Login)
+                "home"       -> HomeScreen()
+                "analytics"  -> AnalyticsScreen()
+                "settings"   -> SettingsScreen()
+                // Sin parámetros — el ViewModel lo maneja todo internamente
+                "CargaMarco" -> UpdateScreen()
+                else         -> MaintanceScren(Routes.Login)
             }
         }
     }
 }
 
 sealed class DrawerScreen(val id: String) {
-    object Home : DrawerScreen("home")
-    object Analytics : DrawerScreen("analytics")
-    object Settings : DrawerScreen("settings")
+    object Home       : DrawerScreen("home")
+    object Analytics  : DrawerScreen("analytics")
+    object Settings   : DrawerScreen("settings")
     object CargaMarco : DrawerScreen("CargaMarco")
 }

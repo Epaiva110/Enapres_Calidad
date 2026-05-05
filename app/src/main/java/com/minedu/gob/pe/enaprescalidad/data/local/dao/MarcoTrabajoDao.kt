@@ -22,6 +22,9 @@ interface MarcoTrabajoDao {
     @Query("DELETE FROM MarcoTrabajo WHERE usuario = :user")
     suspend fun deleteByUsuario(user: String)
 
+    @Query("DELETE FROM MarcoTrabajo WHERE usuario = :usuario AND tipo = :tipo")
+    suspend fun deleteByUsuarioAndTipo(usuario: String, tipo: String)
+
 //    @Insert(onConflict = OnConflictStrategy.REPLACE)
 //    suspend fun insertAll(items: List<MarcoTrabajoEntity>)
 //

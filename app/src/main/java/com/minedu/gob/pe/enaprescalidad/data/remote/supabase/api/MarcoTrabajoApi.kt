@@ -20,4 +20,15 @@ class MarcoTrabajoApi @Inject constructor(
             }
             .decodeList()
     }
+
+    suspend fun getMarcoTrabajoTipo(usuario: String, tipo: String): List<MarcoTrabajoDto> {
+        return postgrest.from("Marco_Trabajo")
+            .select {
+                filter {
+                    eq("usuario", usuario)
+                    eq( "tipo", tipo)
+                }
+            }
+            .decodeList()
+    }
 }

@@ -18,6 +18,8 @@ class MarcoTrabajoRepository @Inject constructor(
     private val remote: MarcoTrabajoRDS,
     private val local: MarcoTrabajoLDS,
 ) {
+
+    //-------------------------Remote
     suspend fun getMarcoTrabajo(
         user: String,
         isOnline: Boolean
@@ -33,36 +35,45 @@ class MarcoTrabajoRepository @Inject constructor(
             if (data.isEmpty()) {
                 return MarcoTrabajoResultRemote.Empty("No hay datos para este usuario")
             }
-
             val entities = data.map { it.toEntity() }
 
             local.saveMarcoTrabajo(entities)
             MarcoTrabajoResultRemote.Success(data)
 
         } catch (e: Exception) {
-            //Log.e("Error", "Error", e)
             MarcoTrabajoResultRemote.Error("Error de red o servidor")
         }
     }
 
-//    fun getMarcoTrabajoTipo(
-//        user: String,
-//        tipo: String
-//    ): Flow<MarcoTrabajoResult> {
-//
-//        return local.getMarcoTrabajoTipo(tipo, user)
-//            .map { data ->
-//
-//                if (data.isEmpty()) {
-//                    MarcoTrabajoResult.Empty("No hay datos para este usuario")
-//                } else {
-//                    val dto = data.map { it.toDto() }
-//                    MarcoTrabajoResult.Success(dto)
-//                }
-//
-//            }
-//    }
+    suspend fun getMarcoTrabajoTipo(
+        user: String,
+        tipo: String,
+        isOnline: Boolean
+    ): MarcoTrabajoResultRemote {
+        return try {
 
+            if (!isOnline) {
+                return MarcoTrabajoResultRemote.Error("No hay internet")
+            }
+
+            val data = remote.getMarcoTrabajoTipo(user, tipo)
+
+            if (data.isEmpty()) {
+                return MarcoTrabajoResultRemote.Empty("No hay datos para este usuario")
+            }
+            val entities = data.map { it.toEntity() }
+
+            local.saveMarcoTrabajoTipo(entities)
+            MarcoTrabajoResultRemote.Success(data)
+
+        } catch (e: Exception) {
+            MarcoTrabajoResultRemote.Error("Error de red o servidor")
+        }
+    }
+
+
+
+    //-------------------------Local
     fun getMarcoTrabajoTipo(
         user: String,
         tipo: String
