@@ -18,8 +18,12 @@ class MarcoTrabajoViewModel @Inject constructor(
     fun getMarcoTrabajo(user: String, isOnline: Boolean) {
         viewModelScope.launch {
             val result = repository.getMarcoTrabajo(user, isOnline)
+        }
+    }
 
-            Log.i("Errorrrrrrrrrrrrrrrr : 00001",result.toString())
+    fun getMarcoTrabajoTipo(user: String, tipo: String) {
+        viewModelScope.launch {
+            repository.getMarcoTrabajoTipo(user, tipo)
         }
     }
 }

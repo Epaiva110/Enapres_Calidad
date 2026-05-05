@@ -14,7 +14,7 @@ class MarcoTrabajoLDS @Inject constructor(
         return dao.getMarcoTrabajo(user)
     }
 
-    suspend fun getMarcoTrabajoTipo(tipo: String, user: String): Flow<List<MarcoTrabajoEntity>> {
+    suspend fun getMarcoTrabajoTipo(tipo: String, user: String): List<MarcoTrabajoEntity> {
         return dao.getMarcoTrabajoTipo(tipo, user)
     }
 

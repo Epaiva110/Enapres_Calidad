@@ -4,7 +4,10 @@ import android.util.Log
 import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.MarcoTrabajoLDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.MarcoTrabajoRDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MarcoTrabajoDto
+import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDto
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,30 +45,18 @@ class MarcoTrabajoRepository @Inject constructor(
 
     suspend fun getMarcoTrabajoTipo(
         user: String,
+        tipo: String
+    ): MarcoTrabajoResult{
 
-        isOnline: Boolean
-    ): MarcoTrabajoResult {
-        return try {
+        val data = local.getMarcoTrabajoTipo(tipo, user)
 
-            if (!isOnline) {
-                return MarcoTrabajoResult.Error("No hay internet")
-            }
-
-            val data = remote.getMarcoTrabajo(user)
-
-            if (data.isEmpty()) {
-                return MarcoTrabajoResult.Empty("No hay datos para este usuario")
-            }
-
-            val entities = data.map { it.toEntity() }
-
-            local.saveMarcoTrabajo(entities)
-            MarcoTrabajoResult.Success(data)
-
-        } catch (e: Exception) {
-            //Log.e("Error", "Error", e)
-            MarcoTrabajoResult.Error("Error de red o servidor")
+        if (data.isEmpty()) {
+            return MarcoTrabajoResult.Empty("No hay datos para este usuario")
         }
+
+        val Dto = data.map { it.toDto() }
+
+        return MarcoTrabajoResult.Success(Dto)
     }
 }
 
@@ -75,4 +66,5 @@ sealed class MarcoTrabajoResult {
     data class Empty(val message: String = "No hay muestras") : MarcoTrabajoResult()
     data class Error(val message: String) : MarcoTrabajoResult()
 }
+
 

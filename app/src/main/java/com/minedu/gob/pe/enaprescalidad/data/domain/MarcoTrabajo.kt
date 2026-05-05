@@ -17,4 +17,8 @@ data class MarcoTrabajo (
     val actualizado: Boolean?,
     val fechaActualizacion: String?,
     val tipoMuestra: Int
-)
+){
+    // REGLA: Está realmente al día solo si dice "Si" Y el total coincide
+    val estaAlDia: Boolean
+        get() = actualizado == true && totalActualizado!! >= totalMuestra && totalMuestra > 0
+}
