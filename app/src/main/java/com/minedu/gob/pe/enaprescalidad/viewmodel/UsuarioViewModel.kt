@@ -9,11 +9,9 @@ import com.minedu.gob.pe.enaprescalidad.data.repository.LoginResult
 import com.minedu.gob.pe.enaprescalidad.data.repository.UsuarioRepository
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.UserSession
-import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -26,9 +24,6 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow<LoginState>(LoginState.Idle)
 
     val state = _state.asStateFlow()
-
-//    private val _uiState = MutableStateFlow(MainUiState())
-//    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     val currentUser = sessionManager.user
 
@@ -87,6 +82,8 @@ class LoginViewModel @Inject constructor(
         password = ""
         sessionManager.clear()
     }
+
+
 }
 
 sealed class LoginState {

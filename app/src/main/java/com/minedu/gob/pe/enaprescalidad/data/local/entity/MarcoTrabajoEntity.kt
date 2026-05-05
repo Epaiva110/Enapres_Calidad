@@ -3,10 +3,10 @@ package com.minedu.gob.pe.enaprescalidad.data.local.entity
 import androidx.room.Entity
 
 @Entity(
-    tableName = "carga_trabajo",
+    tableName = "MarcoTrabajo",
     primaryKeys = ["id"]
 )
-data class CargaTrabajoEntity(
+data class MarcoTrabajoEntity(
     val id: Int,
     val usuario: String,
     val orden: Int,
@@ -15,8 +15,15 @@ data class CargaTrabajoEntity(
     val anio: Int,
     val mes: Int,              // "Enero", "Febrero"...
     val periodo: Int,
-    val totalMuestras: Int,
-    val totalActualizado: Int,
-    val actualizado: Boolean,
-    val fechaActualizacion: String?
+    val totalMuestra: Int,
+    val totalActualizado: Int?,
+    val actualizado: Boolean?,
+    val fechaActualizacion: String?,
+    val tipoMuestra: Int
 )
+
+enum class MarcoTrabajoType {
+    CONGLOMERADO,
+    VIVIENDA,
+    REENTREVISTA
+}

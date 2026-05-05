@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.minedu.gob.pe.enaprescalidad.data.local.dao.CargaTrabajoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MarcoTrabajoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
@@ -15,7 +15,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraReentrevistaEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
-import com.minedu.gob.pe.enaprescalidad.data.local.entity.CargaTrabajoEntity
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.MarcoTrabajoEntity
 
 //@Database(
 //    entities = [
@@ -38,9 +38,9 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.CargaTrabajoEntity
         SyncEntity::class,
         MuestraViviendaEntity::class,
         MuestraReentrevistaEntity::class,
-        CargaTrabajoEntity::class
+        MarcoTrabajoEntity::class
                ],
-    version = 6,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {
@@ -51,7 +51,7 @@ abstract class AppDataBase : RoomDatabase() {
 
     abstract fun muestraViviendaDao(): MuestraViviendaDao           // ← agregar
     abstract fun muestraReentrevistaDao(): MuestraReentrevistaDao   // ← agregar
-    abstract fun cargaTrabajoDao(): CargaTrabajoDao                 // ← agregar
+    abstract fun marcoTrabajoDao(): MarcoTrabajoDao                 // ← agregar
 
 
     companion object {

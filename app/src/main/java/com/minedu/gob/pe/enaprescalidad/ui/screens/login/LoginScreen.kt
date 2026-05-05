@@ -34,13 +34,16 @@ import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import com.minedu.gob.pe.enaprescalidad.R
+import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import com.minedu.gob.pe.enaprescalidad.utils.SetupMapSystemUI
+import com.minedu.gob.pe.enaprescalidad.viewmodel.MarcoTrabajoViewModel
 
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
+    //viewModelMT: MarcoTrabajoViewModel = hiltViewModel()
 ) {
     SetupMapSystemUI()
 
@@ -78,9 +81,9 @@ fun LoginScreen(
                 isLoginEnabled = viewModel.isLoginEnabled,
                 onLoginClick = {
                     viewModel.login(hasInternet(context))
+                    //viewModelMT.getMarcoTrabajo("SUP001",hasInternet(context))
                 }
             )
-
             LoadingOverlay(visible = state is LoginState.Loading)
         }
     }

@@ -1,13 +1,10 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository.mapper
 
 import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraConglomerado
-import com.minedu.gob.pe.enaprescalidad.data.domain.Usuario
-import com.minedu.gob.pe.enaprescalidad.data.local.entity.CargaTrabajoEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraConglomeradoDto
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraViviendaDto
-import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.UsuarioDto
 
 // ── Muestra ───────────────────────────────────────────────────────
 fun MuestraConglomeradoDto.toEntity() = MuestraConglomeradoEntity(idcongsup = idcongsup,anioSup = anioSup,mesSup = mesSup,perSup = perSup, anio = anio,

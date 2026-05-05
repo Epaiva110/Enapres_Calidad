@@ -3,7 +3,10 @@ package com.minedu.gob.pe.enaprescalidad.di
 import android.content.Context
 import androidx.room.Room
 import com.minedu.gob.pe.enaprescalidad.BuildConfig
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MarcoTrabajoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDaos
 import com.minedu.gob.pe.enaprescalidad.data.local.database.AppDataBase
@@ -54,6 +57,13 @@ object AppModule {
     @Provides
     fun provideSyncDao (db: AppDataBase): SyncDao = db.syncDao()
 
+    @Provides
+    fun provideMuestraViviendaDao(db: AppDataBase): MuestraViviendaDao = db.muestraViviendaDao()
 
+    @Provides
+    fun provideMuestraReentrevistaDao(db: AppDataBase): MuestraReentrevistaDao = db.muestraReentrevistaDao()
+
+    @Provides
+    fun provideMarcoTrabajoDao(db: AppDataBase): MarcoTrabajoDao = db.marcoTrabajoDao()
 
 }
