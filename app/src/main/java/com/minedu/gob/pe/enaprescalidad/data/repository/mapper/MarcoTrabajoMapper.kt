@@ -11,3 +11,7 @@ fun MarcoTrabajoEntity.toDto() = MarcoTrabajoDto (id = id,usuario = usuario,orde
     totalMuestra = totalMuestra,totalActualizado = totalActualizado,actualizado = actualizado,fechaActualizacion = fechaActualizacion,tipoMuestra = tipoMuestra)
 fun MarcoTrabajoDto.toDomain() = MarcoTrabajo(id = id,usuario = usuario,orden = orden,tipo = tipo,fechaProgramacion = fechaProgramacion,anio = anio,mes = mes,periodo = periodo,
     totalMuestra = totalMuestra,totalActualizado = totalActualizado,actualizado = actualizado,fechaActualizacion = fechaActualizacion,tipoMuestra = tipoMuestra)
+
+
+fun MarcoTrabajoEntity.toDomain() = MarcoTrabajo (id = id,usuario = usuario,orden = orden,tipo = tipo,fechaProgramacion = fechaProgramacion,anio = anio,mes = mes,periodo = periodo,
+    totalMuestra = totalMuestra,totalActualizado = totalActualizado,actualizado = actualizado,fechaActualizacion = fechaActualizacion,tipoMuestra = tipoMuestra)

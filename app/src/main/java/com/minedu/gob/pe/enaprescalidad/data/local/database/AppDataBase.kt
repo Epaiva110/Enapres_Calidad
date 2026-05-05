@@ -40,7 +40,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MarcoTrabajoEntity
         MuestraReentrevistaEntity::class,
         MarcoTrabajoEntity::class
                ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {

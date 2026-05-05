@@ -18,8 +18,7 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.analytics.Analy
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.home.HomeScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.settings.SettingsScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreen
-import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreenPreview
-import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreenPreview22
+
 
 //import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreenPreview
 
@@ -54,9 +53,12 @@ fun MainContent(
                 "home"      -> HomeScreen()
                 "analytics" -> AnalyticsScreen()
                 "settings"  -> SettingsScreen()
-                //"CargaMarco"    -> UpdateScreen(userId = "ADM")
-                "CargaMarco" -> UpdateScreenPreview()
-                "verificacionConglomerado" -> UpdateScreenPreview22()
+                "CargaMarco" -> UpdateScreen(
+                    isSyncing = false,
+                    onSyncAllData = { },
+                    onSyncGroup = {},
+                    onSyncIndividual = {})
+                //"verificacionConglomerado" -> UpdateScreenPreview22()
                 else        -> MaintanceScren (Routes.Login)
             }
         }

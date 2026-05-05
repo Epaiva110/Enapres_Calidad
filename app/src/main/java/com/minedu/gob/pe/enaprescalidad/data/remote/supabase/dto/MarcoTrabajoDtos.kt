@@ -13,8 +13,8 @@ data class MarcoTrabajoDto(
     val mes: Int,              // "Enero", "Febrero"...
     val periodo: Int,
     val totalMuestra: Int,
-    val totalActualizado: Int?,
-    val actualizado: Boolean?,
+    val totalActualizado: Int,
+    val actualizado: Boolean,
     val fechaActualizacion: String?,
     val tipoMuestra: Int
 )

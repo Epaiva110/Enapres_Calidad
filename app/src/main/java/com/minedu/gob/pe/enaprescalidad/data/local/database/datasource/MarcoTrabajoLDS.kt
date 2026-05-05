@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.firstOrNull
 class MarcoTrabajoLDS @Inject constructor(
     private val dao: MarcoTrabajoDao
 ) {
-    suspend fun getMarcoTrabajo(user: String): Flow<List<MarcoTrabajoEntity>> {
+    fun getMarcoTrabajo(user: String): Flow<List<MarcoTrabajoEntity>> {
         return dao.getMarcoTrabajo(user)
     }
 
-    suspend fun getMarcoTrabajoTipo(tipo: String, user: String): List<MarcoTrabajoEntity> {
+    fun getMarcoTrabajoTipo(tipo: String, user: String): Flow<List<MarcoTrabajoEntity>> {
         return dao.getMarcoTrabajoTipo(tipo, user)
     }
 

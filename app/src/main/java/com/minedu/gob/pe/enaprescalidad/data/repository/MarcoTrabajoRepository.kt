@@ -1,9 +1,11 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository
 
 import android.util.Log
+import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.MarcoTrabajoLDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.MarcoTrabajoRDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MarcoTrabajoDto
+import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDto
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toEntity
 import kotlinx.coroutines.flow.Flow
@@ -19,52 +21,97 @@ class MarcoTrabajoRepository @Inject constructor(
     suspend fun getMarcoTrabajo(
         user: String,
         isOnline: Boolean
-    ): MarcoTrabajoResult {
+    ): MarcoTrabajoResultRemote {
         return try {
 
             if (!isOnline) {
-                return MarcoTrabajoResult.Error("No hay internet")
+                return MarcoTrabajoResultRemote.Error("No hay internet")
             }
 
             val data = remote.getMarcoTrabajo(user)
 
             if (data.isEmpty()) {
-                return MarcoTrabajoResult.Empty("No hay datos para este usuario")
+                return MarcoTrabajoResultRemote.Empty("No hay datos para este usuario")
             }
 
             val entities = data.map { it.toEntity() }
 
             local.saveMarcoTrabajo(entities)
-            MarcoTrabajoResult.Success(data)
+            MarcoTrabajoResultRemote.Success(data)
 
         } catch (e: Exception) {
             //Log.e("Error", "Error", e)
-            MarcoTrabajoResult.Error("Error de red o servidor")
+            MarcoTrabajoResultRemote.Error("Error de red o servidor")
         }
     }
 
-    suspend fun getMarcoTrabajoTipo(
+//    fun getMarcoTrabajoTipo(
+//        user: String,
+//        tipo: String
+//    ): Flow<MarcoTrabajoResult> {
+//
+//        return local.getMarcoTrabajoTipo(tipo, user)
+//            .map { data ->
+//
+//                if (data.isEmpty()) {
+//                    MarcoTrabajoResult.Empty("No hay datos para este usuario")
+//                } else {
+//                    val dto = data.map { it.toDto() }
+//                    MarcoTrabajoResult.Success(dto)
+//                }
+//
+//            }
+//    }
+
+    fun getMarcoTrabajoTipo(
         user: String,
         tipo: String
-    ): MarcoTrabajoResult{
+    ): Flow<MarcoTrabajoResultLocal> {
 
-        val data = local.getMarcoTrabajoTipo(tipo, user)
+        return local.getMarcoTrabajoTipo(tipo, user)
+            .map { data ->
 
-        if (data.isEmpty()) {
-            return MarcoTrabajoResult.Empty("No hay datos para este usuario")
-        }
+                if (data.isEmpty()) {
+                    MarcoTrabajoResultLocal.Empty("No hay datos para este usuario")
+                } else {
+                    val domainList = data.map { it.toDomain() }
 
-        val Dto = data.map { it.toDto() }
+                    MarcoTrabajoResultLocal.Success(domainList)
+                }
 
-        return MarcoTrabajoResult.Success(Dto)
+            }
+    }
+
+    fun getMarcoTrabajoLocal(
+        user: String,
+    ): Flow<MarcoTrabajoResultLocal> {
+
+        return local.getMarcoTrabajo(user)
+            .map { data ->
+
+                if (data.isEmpty()) {
+                    MarcoTrabajoResultLocal.Empty("No hay datos para este usuario")
+                } else {
+                    val domainList = data.map { it.toDomain() }
+
+                    MarcoTrabajoResultLocal.Success(domainList)
+                }
+
+            }
     }
 }
 
 
-sealed class MarcoTrabajoResult {
-    data class Success(val data: List<MarcoTrabajoDto>) : MarcoTrabajoResult()
-    data class Empty(val message: String = "No hay muestras") : MarcoTrabajoResult()
-    data class Error(val message: String) : MarcoTrabajoResult()
+sealed class MarcoTrabajoResultRemote {
+    data class Success(val data: List<MarcoTrabajoDto>) : MarcoTrabajoResultRemote()
+    data class Empty(val message: String = "No hay muestras") : MarcoTrabajoResultRemote()
+    data class Error(val message: String) : MarcoTrabajoResultRemote()
+}
+
+sealed class MarcoTrabajoResultLocal {
+    data class Success(val data: List<MarcoTrabajo>) : MarcoTrabajoResultLocal()
+    data class Empty(val message: String = "No hay muestras") : MarcoTrabajoResultLocal()
+    data class Error(val message: String) : MarcoTrabajoResultLocal()
 }
 
 

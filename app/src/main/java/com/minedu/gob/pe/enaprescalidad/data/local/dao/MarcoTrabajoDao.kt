@@ -14,7 +14,7 @@ interface MarcoTrabajoDao {
     fun getMarcoTrabajo(user: String): Flow<List<MarcoTrabajoEntity>>
 
     @Query("SELECT * FROM MarcoTrabajo WHERE tipo = :tipo and usuario = :user ORDER BY anio, periodo")
-    fun getMarcoTrabajoTipo(tipo: String, user: String): List<MarcoTrabajoEntity>
+    fun getMarcoTrabajoTipo(tipo: String, user: String): Flow<List<MarcoTrabajoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(data: List<MarcoTrabajoEntity>)

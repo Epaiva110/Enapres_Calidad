@@ -69,11 +69,6 @@ class LoginViewModel @Inject constructor(
         _state.value = LoginState.Idle
     }
 
-    fun resetInputs() {
-        codsup = ""
-        password = ""
-    }
-
     fun logout() {
         viewModelScope.launch {
             _state.value = LoginState.Idle
