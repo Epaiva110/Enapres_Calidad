@@ -1,12 +1,10 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository
 
-import android.util.Log
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.MarcoTrabajoLDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.MarcoTrabajoRDS
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MarcoTrabajoDto
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
-import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDto
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
+import kotlinx.coroutines.Job
 
 
 /**
@@ -39,28 +40,45 @@ class UpdateViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UpdateUiState())
     val uiState: StateFlow<UpdateUiState> = _uiState.asStateFlow()
 
+    private var observeJob: Job? = null
+
+    fun observeMarcos(userId: String) {
+        observeJob?.cancel() // cancela el anterior si existe
+        observeJob = viewModelScope.launch {
+            marcoRepo.getMarcoTrabajoLocal(userId).collect { result ->
+                _uiState.update { state ->
+                    when (result) {
+                        is MarcoTrabajoResultLocal.Success -> state.copy(marcos = result.data)
+                        is MarcoTrabajoResultLocal.Empty   -> state.copy(marcos = emptyList())
+                        is MarcoTrabajoResultLocal.Error   -> state.copy(marcos = emptyList(), marcoError = result.message)
+                    }
+                }
+            }
+        }
+    }
+
     // ── Observación reactiva de marcos ────────────────────────────────────────
 
     /**
      * Llama esto UNA vez desde LaunchedEffect cuando el usuario está disponible.
      * Inicia la observación reactiva: cada cambio en Room actualiza la UI automáticamente.
      */
-    fun observeMarcos(userId: String) {
-        viewModelScope.launch {
-            marcoRepo.getMarcoTrabajoLocal(userId).collect { result ->
-                _uiState.update { state ->
-                    when (result) {
-                        is MarcoTrabajoResultLocal.Success ->
-                            state.copy(marcos = result.data)
-                        is MarcoTrabajoResultLocal.Empty ->
-                            state.copy(marcos = emptyList())
-                        is MarcoTrabajoResultLocal.Error ->
-                            state.copy(marcos = emptyList(), marcoError = result.message)
-                    }
-                }
-            }
-        }
-    }
+//    fun observeMarcos(userId: String) {
+//        viewModelScope.launch {
+//            marcoRepo.getMarcoTrabajoLocal(userId).collect { result ->
+//                _uiState.update { state ->
+//                    when (result) {
+//                        is MarcoTrabajoResultLocal.Success ->
+//                            state.copy(marcos = result.data)
+//                        is MarcoTrabajoResultLocal.Empty ->
+//                            state.copy(marcos = emptyList())
+//                        is MarcoTrabajoResultLocal.Error ->
+//                            state.copy(marcos = emptyList(), marcoError = result.message)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     // ── Búsqueda de marcos (Card 1) ───────────────────────────────────────────
 
