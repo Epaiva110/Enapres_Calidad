@@ -9,8 +9,8 @@ import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.MuestraC
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraConglomeradoDto
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toEntity
 
-import javax.inject.Inject
-import javax.inject.Singleton
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
 
 @Singleton
@@ -63,7 +63,8 @@ class MuestraConglomeradoRepository @Inject constructor(
 
 
     suspend fun syncMuestra(
-        usuario: String,
+        idmt: Int,
+        user: String,
         tipo: String,
         isOnline: Boolean
     ): MuestraResult {
@@ -73,7 +74,7 @@ class MuestraConglomeradoRepository @Inject constructor(
                 return MuestraResult.Error("No hay internet")
             }
 
-            val data = remote.getMuestraConglomeradoUsuario(usuario)
+            val data = remote.getMuestraConglomeradoUsuario(idmt)
 
             if (data.isEmpty()) {
                 return MuestraResult.Empty("No hay datos para este usuario")
@@ -81,7 +82,7 @@ class MuestraConglomeradoRepository @Inject constructor(
 
             val entities = data.map { it.toEntity() }
 
-            local.saveMuestras(entities)
+            local.saveMuestras(user, entities)
             MuestraResult.Success(data)
 
         } catch (e: Exception) {
@@ -90,7 +91,8 @@ class MuestraConglomeradoRepository @Inject constructor(
     }
 
     suspend fun syncMuestraConglomerado(
-        usuario: String,
+        idmt: Int,
+        user: String,
         isOnline: Boolean
     ): MuestraResult {
         return try {
@@ -99,7 +101,7 @@ class MuestraConglomeradoRepository @Inject constructor(
                 return MuestraResult.Error("No hay internet")
             }
 
-            val data = remote.getMuestraConglomeradoUsuario(usuario)
+            val data = remote.getMuestraConglomeradoUsuario(idmt)
 
             if (data.isEmpty()) {
                 return MuestraResult.Empty("No hay datos para este usuario")
@@ -107,7 +109,7 @@ class MuestraConglomeradoRepository @Inject constructor(
 
             val entities = data.map { it.toEntity() }
 
-            local.saveMuestras(entities)
+            local.saveMuestras(user,entities)
             MuestraResult.Success(data)
 
         } catch (e: Exception) {
@@ -116,7 +118,8 @@ class MuestraConglomeradoRepository @Inject constructor(
     }
 
     suspend fun syncMuestraVivienda(
-        usuario: String,
+        idmt: Int,
+        user: String,
         isOnline: Boolean
     ): MuestraResult {
         return try {
@@ -125,7 +128,7 @@ class MuestraConglomeradoRepository @Inject constructor(
                 return MuestraResult.Error("No hay internet")
             }
 
-            val data = remote.getMuestraConglomeradoUsuario(usuario)
+            val data = remote.getMuestraConglomeradoUsuario(idmt)
 
             if (data.isEmpty()) {
                 return MuestraResult.Empty("No hay datos para este usuario")
@@ -133,7 +136,7 @@ class MuestraConglomeradoRepository @Inject constructor(
 
             val entities = data.map { it.toEntity() }
 
-            local.saveMuestras(entities)
+            local.saveMuestras(user,entities)
 
             MuestraResult.Success(data)
 
@@ -143,7 +146,8 @@ class MuestraConglomeradoRepository @Inject constructor(
     }
 
     suspend fun syncReentrevista(
-        usuario: String,
+        idmt: Int,
+        user: String,
         isOnline: Boolean
     ): MuestraResult {
         return try {
@@ -152,7 +156,7 @@ class MuestraConglomeradoRepository @Inject constructor(
                 return MuestraResult.Error("No hay internet")
             }
 
-            val data = remote.getMuestraConglomeradoUsuario(usuario)
+            val data = remote.getMuestraConglomeradoUsuario(idmt)
 
             if (data.isEmpty()) {
                 return MuestraResult.Empty("No hay datos para este usuario")
@@ -160,7 +164,7 @@ class MuestraConglomeradoRepository @Inject constructor(
 
             val entities = data.map { it.toEntity() }
 
-            local.saveMuestras(entities)
+            local.saveMuestras(user, entities)
 
             MuestraResult.Success(data)
 

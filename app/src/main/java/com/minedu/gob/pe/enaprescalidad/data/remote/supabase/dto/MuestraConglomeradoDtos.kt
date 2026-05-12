@@ -4,63 +4,51 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MuestraConglomeradoDto(
-    val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idcong: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?
 )
 
 @Serializable
 data class MuestraViviendaDto(
-    val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idviv: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?
 )
 
 @Serializable
 data class MuestraReentrevistaDto(
-    val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idviv: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?
 )

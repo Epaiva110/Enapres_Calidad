@@ -1,19 +1,53 @@
 package com.minedu.gob.pe.enaprescalidad.data.local.database.datasource
 
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraReentrevistaEntity
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import jakarta.inject.Inject
 
 class MuestraLocalDataSource @Inject constructor (
-    private val dao: MuestraConglomeradoDao,
-//    private val daoVivienda: MuestraViviendaDao,
-//    private val daoReentrevista: MuestraReentrevistaDao
+    private val daoC: MuestraConglomeradoDao,
+    private val daoV: MuestraViviendaDao,
+    private val daoR: MuestraReentrevistaDao
     ){
+
+    /**
+     * Muestra Conglomerado
+     **/
+
     suspend fun get(user: String): List<MuestraConglomeradoEntity> {
-        return dao.getMuestraUsuario(user)
+        return daoC.getMuestraUsuario(user)
     }
-    suspend fun saveMuestras(data: List<MuestraConglomeradoEntity>) {
-        dao.deleteByUsuario(data.firstOrNull()?.usuario ?: return)
-        dao.insertAll(data)
+    suspend fun saveMuestras(user: String, data: List<MuestraConglomeradoEntity>) {
+        daoC.deleteByUsuario(user)
+        daoC.insertAll(data)
     }
+
+    /**
+     * Muestra Vivienda
+     **/
+
+    suspend fun getV(user: String): List<MuestraViviendaEntity> {
+        return daoV.getMuestraUsuario(user)
+    }
+    suspend fun saveMuestrasV(user: String, data: List<MuestraViviendaEntity>) {
+        daoV.deleteByUsuario(user)
+        daoV.insertAll(data)
+    }
+
+    /**
+     * Muestra Reentrevista
+     **/
+
+    suspend fun getR(user: String): List<MuestraReentrevistaEntity> {
+        return daoR.getMuestraUsuario(user)
+    }
+    suspend fun saveMuestrasR(user: String, data: List<MuestraReentrevistaEntity>) {
+        daoR.deleteByUsuario(user)
+        daoR.insertAll(data)
+    }
+
 }

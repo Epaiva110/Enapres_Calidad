@@ -1,6 +1,10 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.minedu.gob.pe.enaprescalidad.data.domain.Usuario
 import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.UsuarioLocalDataSource
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
@@ -8,8 +12,8 @@ import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.UsuarioR
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
 import com.minedu.gob.pe.enaprescalidad.utils.CryptoManager
 
-import javax.inject.Inject
-import javax.inject.Singleton
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlin.String
 
 @Singleton
@@ -19,27 +23,27 @@ class UsuarioRepository @Inject constructor(
     private val crypto: CryptoManager
 ) {
 
-    suspend fun login(user: String, password: String, isOnline: Boolean): LoginResult {
+    suspend fun login(user: String, password: String, isOnline: Boolean, lastconnection: Long): LoginResult {
         return if (isOnline) {
-            loginOnline(user, password)
+            loginOnline(user, password, lastconnection)
         } else {
             loginOffline(user, password)
         }
     }
 
-    private suspend fun loginOnline(user: String, password: String): LoginResult {
+    private suspend fun loginOnline(user: String, password: String, lastconnection: Long): LoginResult {
 
         return try {
 
             val dto = remote.login(user, password)
                 ?: return LoginResult.Error("Usuario o contraseña incorrectos")
 
-            Log.i("Error00000001",dto.toString())
-
             val domain = dto.toDomain()
 
+            remote.update(user, lastconnection)
+
             try {
-                saveUser(domain, password)
+                saveUser(domain, password, lastconnection)
             } catch (e: Exception) {
                 Log.e("Error_Save", "Error guardando en Room", e)
             }
@@ -83,7 +87,7 @@ class UsuarioRepository @Inject constructor(
         }
     }
 
-    private suspend fun saveUser(user: Usuario, password: String) {
+    private suspend fun saveUser(user: Usuario, password: String, lastconnection: Long) {
         val entity = UsuarioEntity(
             id = user.id,
             user = user.user,
@@ -91,7 +95,7 @@ class UsuarioRepository @Inject constructor(
             active = user.active,
             user_name = user.user_name,
             role = user.role,
-            last_connection = System.currentTimeMillis()
+            last_connection = lastconnection
         )
         local.save(entity)
     }

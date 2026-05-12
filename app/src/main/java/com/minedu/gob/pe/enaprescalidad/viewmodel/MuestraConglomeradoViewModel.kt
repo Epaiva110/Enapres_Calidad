@@ -34,13 +34,16 @@ class MuestraConglomeradoViewModel @Inject constructor(
             val result = when (type) {
 
                 SyncType.CONGLOMERADO ->
-                    repository.syncMuestraConglomerado(userId, isOnline)
+                    repository.syncMuestraConglomerado(10,"adm", isOnline)
 
                 SyncType.VIVIENDA ->
-                    repository.syncMuestraVivienda(userId, isOnline)
+                //    repository.syncMuestraVivienda(userId, isOnline)
+                    repository.syncMuestraVivienda(10,"adm", isOnline)
+
 
                 SyncType.REENTREVISTA ->
-                    repository.syncReentrevista(userId, isOnline)
+                    //repository.syncReentrevista(userId, isOnline)
+                repository.syncReentrevista(10,"adm", isOnline)
             }
 
             when (result) {

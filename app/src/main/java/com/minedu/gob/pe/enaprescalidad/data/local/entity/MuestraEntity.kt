@@ -17,49 +17,41 @@ data class MuestraConglomeradoEntity(
     val odeienapres: String,
     val sincronizado: Boolean,
     val cerrado: Boolean,
-    val fecha_sincronizacion: String?,
+    val fecha_sincronizacion: String?
 )
 
 
-@Entity(tableName = "MuestraVivienda")
+@Entity(tableName = "Muestra_Vivienda")
 data class MuestraViviendaEntity(
-    @PrimaryKey val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    @PrimaryKey val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idviv: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?
 )
 
 
-@Entity(tableName = "MuestraReentrevista")
+@Entity(tableName = "Muestra_Reentrevista")
 data class MuestraReentrevistaEntity(
-    @PrimaryKey val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    @PrimaryKey val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idviv: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?
 )

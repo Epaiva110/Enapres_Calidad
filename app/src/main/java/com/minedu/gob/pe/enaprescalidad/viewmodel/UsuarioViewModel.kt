@@ -1,6 +1,8 @@
 package com.minedu.gob.pe.enaprescalidad.viewmodel
 
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -10,10 +12,12 @@ import com.minedu.gob.pe.enaprescalidad.data.repository.UsuarioRepository
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.UserSession
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.ktor.util.generateNonce
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import perfetto.protos.TraceMetricV2
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -27,12 +31,12 @@ class LoginViewModel @Inject constructor(
 
     val currentUser = sessionManager.user
 
-
     // ── Form state vive aquí, no en la Screen ──
     var codsup by mutableStateOf("")
         private set
     var password by mutableStateOf("")
         private set
+
 
     val isLoginEnabled: Boolean
         get() = codsup.isNotBlank() && password.length >= 4 && _state.value !is LoginState.Loading
@@ -40,10 +44,10 @@ class LoginViewModel @Inject constructor(
     fun onCodsupChange(value: String) { codsup = value }
     fun onPasswordChange(value: String) { password = value }
 
-    fun login(isOnline: Boolean) {
+    fun login(isOnline: Boolean, lastconnection:Long = System.currentTimeMillis()) {
         viewModelScope.launch {
             _state.value = LoginState.Loading
-            val result = repository.login(codsup, password, isOnline)
+            val result = repository.login(codsup, password, isOnline, lastconnection)
 
             _state.value = when (result) {
                 is LoginResult.Success -> {
@@ -51,9 +55,11 @@ class LoginViewModel @Inject constructor(
 
                     sessionManager.setUser(
                         UserSession(
+                            id = user.id,
                             user = user.user,
                             user_name = user.user_name,
-                            role = user.role
+                            role = user.role,
+                            last_connection = lastconnection
                         )
                     )
 
@@ -77,8 +83,6 @@ class LoginViewModel @Inject constructor(
         password = ""
         sessionManager.clear()
     }
-
-
 }
 
 sealed class LoginState {

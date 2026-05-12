@@ -34,7 +34,7 @@ class MarcoTrabajoViewModel @Inject constructor(
 
     fun getMarcoTrabajo(user: String, isOnline: Boolean) {
         viewModelScope.launch {
-            val result = repository.getMarcoTrabajo(user, isOnline)
+            repository.getMarcoTrabajo(user, isOnline)
         }
     }
 

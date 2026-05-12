@@ -3,7 +3,7 @@ package com.minedu.gob.pe.enaprescalidad.ui.domain.usecase
 import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
 import com.minedu.gob.pe.enaprescalidad.ui.domain.repository.SidebarRepository
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 /**
  * Caso de uso: obtener la lista de ítems del sidebar.

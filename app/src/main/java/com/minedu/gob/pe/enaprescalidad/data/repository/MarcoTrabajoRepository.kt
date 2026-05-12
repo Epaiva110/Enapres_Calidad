@@ -8,13 +8,13 @@ import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
 @Singleton
 class MarcoTrabajoRepository @Inject constructor(
     private val remote: MarcoTrabajoRDS,
-    private val local: MarcoTrabajoLDS,
+    private val local: MarcoTrabajoLDS
 ) {
 
     //-------------------------Remote

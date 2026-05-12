@@ -5,6 +5,10 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import jakarta.inject.Inject
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 class UsuarioApi @Inject constructor(
     private val client: SupabaseClient
 ) {
@@ -20,4 +24,26 @@ class UsuarioApi @Inject constructor(
             }
             .decodeSingleOrNull()
     }
+
+    suspend fun update(user: String, lastConnection: Long) {
+        val formatted = Instant.ofEpochMilli(lastConnection)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        postgrest.from("usuario")
+            .update(
+                {
+                    set("last_connection", formatted)
+                }
+            ) {
+                filter {
+                    eq("user", user)
+                }
+            }
+    }
 }
+
+
+
+
+

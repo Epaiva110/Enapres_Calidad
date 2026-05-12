@@ -5,16 +5,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MarcoTrabajoDto(
     val id: Int,
-    val usuario: String,
+    val user: String,
     val orden: Int,
-    val tipo: String,             // "CONGLOMERADO" | "VIVIENDA" | "REENTREVISTA"
-    val fechaProgramacion: String,
+    val tipo: String,
+    val fecha_programacion: String,
     val anio: Int,
-    val mes: Int,              // "Enero", "Febrero"...
+    val mes: Int,
     val periodo: Int,
-    val totalMuestra: Int,
-    val totalActualizado: Int,
-    val actualizado: Boolean,
-    val fechaActualizacion: String?,
-    val tipoMuestra: Int
+    val meta: Int,
+    val descargas: Int,
+    val sincronizado: Boolean,
+    val fecha_sincronizacion: String?,
+    val proyecto: Int
 )

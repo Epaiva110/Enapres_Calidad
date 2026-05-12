@@ -1,5 +1,6 @@
 package com.minedu.gob.pe.enaprescalidad.data.domain
 
+import com.google.type.DateTime
 import kotlinx.serialization.Serializable
 
 @Serializable

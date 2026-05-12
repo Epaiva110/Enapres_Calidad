@@ -11,21 +11,21 @@ class MarcoTrabajoApi @Inject constructor(
 ) {
     private val postgrest = client.postgrest
 
-    suspend fun getMarcoTrabajo(usuario: String): List<MarcoTrabajoDto> {
+    suspend fun getMarcoTrabajo(user: String): List<MarcoTrabajoDto> {
         return postgrest.from("Marco_Trabajo")
             .select {
                 filter {
-                    eq("usuario", usuario)
+                    eq("user", user)
                 }
             }
             .decodeList()
     }
 
-    suspend fun getMarcoTrabajoTipo(usuario: String, tipo: String): List<MarcoTrabajoDto> {
+    suspend fun getMarcoTrabajoTipo(user: String, tipo: String): List<MarcoTrabajoDto> {
         return postgrest.from("Marco_Trabajo")
             .select {
                 filter {
-                    eq("usuario", usuario)
+                    eq("user", user)
                     eq( "tipo", tipo)
                 }
             }

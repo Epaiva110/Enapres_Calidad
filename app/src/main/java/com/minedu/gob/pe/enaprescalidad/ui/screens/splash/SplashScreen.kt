@@ -29,7 +29,7 @@ fun SplashScreen(onNavigate: (Routes) -> Unit) {
 
         // Aquí simulas la recuperación de sesión
         val isLogged = false
-        val savedId = "SUP-123" // Esto lo traerías de tu base de datos local
+        "SUP-123" // Esto lo traerías de tu base de datos local
 
         if (isLogged) {
             // IMPORTANTE: Ahora Main requiere el ID

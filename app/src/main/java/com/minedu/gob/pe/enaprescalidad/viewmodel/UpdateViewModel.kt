@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import kotlinx.coroutines.Job
@@ -176,11 +176,13 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             for (type in SyncType.entries) {
                 _uiState.update { it.copy(syncingType = type, syncError = null) }
-
                 val result = when (type) {
-                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(userId, isOnline)
-                    SyncType.VIVIENDA     -> muestraRepo.syncMuestraVivienda(userId, isOnline)
-                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(userId, isOnline)
+//                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(userId, isOnline)
+//                    SyncType.VIVIENDA     -> muestraRepo.syncMuestraVivienda(userId, isOnline)
+//                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(userId, isOnline)
+                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(10, "SUP001",isOnline)
+                    SyncType.VIVIENDA     -> muestraRepo.syncMuestraVivienda(11, "SUP001",isOnline)
+                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(12, "SUP001",isOnline)
                 }
 
                 // Si un tipo falla, detenemos el proceso

@@ -39,7 +39,7 @@ import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import com.minedu.gob.pe.enaprescalidad.viewmodel.UpdateUiState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.UpdateViewModel
-import javax.inject.Inject
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  ENTRY POINT — conecta ViewModel con UI
@@ -475,8 +475,8 @@ fun CargaTableRow(
     val statusColor = if (isReady) UpdateTokens.ColorSuccess else UpdateTokens.ColorWarning
 
     val progress by animateFloatAsState(
-        targetValue = if (carga.totalMuestra > 0)
-            carga.totalActualizado.toFloat() / carga.totalMuestra
+        targetValue = if (carga.meta > 0)
+            carga.descargas.toFloat() / carga.meta
         else 0f,
         label = "progress_${carga.id}",
     )
@@ -488,13 +488,13 @@ fun CargaTableRow(
         // Col 1: Orden + Periodo
         Column(Modifier.width(COL_ID)) {
             Text(
-                "#${carga.orden}",
+                "#${carga.orden} · ${carga.anio}",
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                "${carga.anio} · ${carga.mes} · P${carga.periodo}",
+                "${carga.mes} · P${carga.periodo}",
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -503,7 +503,7 @@ fun CargaTableRow(
         // Col 2: Barra de progreso
         Column(Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp)) {
             Text(
-                "${carga.totalActualizado} de ${carga.totalMuestra}",
+                "${carga.descargas} de ${carga.meta}",
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
@@ -527,17 +527,16 @@ fun CargaTableRow(
 
         // Col 4: Fecha
         Text(
-            text = carga.fechaActualizacion ?: "--/--/--",
+            text = carga.fecha_sincronizacion?: "--/--/--",
             modifier = Modifier.width(COL_DATE),
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        //
         // Col 5: Botón acción
         Box(Modifier.width(COL_ACTION)
             , contentAlignment = Alignment.Center) {
-            if (carga.actualizado) {
+            if (carga.sincronizado) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
                     strokeWidth = 2.dp,
@@ -546,7 +545,7 @@ fun CargaTableRow(
             } else {
                 IconButton(
                     onClick = { },
-                    enabled = !carga.actualizado,
+                    enabled = !carga.sincronizado,
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -559,9 +558,6 @@ fun CargaTableRow(
                 }
             }
         }
-
-        //
-
     }
 }
 

@@ -11,4 +11,9 @@ class UsuarioRemoteDataSource @Inject constructor(
     suspend fun login(user: String, password: String): UsuarioDto? {
         return api.login(user, password)
     }
+    suspend fun update(user: String, lastConnection: Long) {
+        return api.update(user, lastConnection)
+    }
 }
+
+

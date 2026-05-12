@@ -1,29 +1,43 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository.mapper
 
 import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraConglomerado
+import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraVivienda
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraConglomeradoDto
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraViviendaDto
 
-// ── Muestra ───────────────────────────────────────────────────────
-fun MuestraConglomeradoDto.toEntity() = MuestraConglomeradoEntity(idcongsup = idcongsup,anioSup = anioSup,mesSup = mesSup,perSup = perSup, anio = anio,
-    mes = mes,conglomerado = conglomerado,departamento = departamento,provincia = provincia,distrito = distrito,odeiEnapres = odeiEnapres,
-    usuario = usuario,fechaCreacion = fechaCreacion,fechaEnvio = fechaEnvio,enviado = enviado,cerrado = cerrado,tipoMuestra = tipoMuestra)
+// ── Muestra Conglomerado ───────────────────────────────────────────────────────
+fun MuestraConglomeradoDto.toEntity() = MuestraConglomeradoEntity(id = id, id_mt = id_mt, anio = anio, mes = mes, idcong = idcong, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
 
-fun MuestraConglomeradoEntity.toDto() = MuestraConglomeradoDto (idcongsup = idcongsup,anioSup = anioSup,mesSup = mesSup,perSup = perSup, anio = anio,
-    mes = mes,conglomerado = conglomerado,departamento = departamento,provincia = provincia,distrito = distrito,odeiEnapres = odeiEnapres,
-    usuario = usuario,fechaCreacion = fechaCreacion,fechaEnvio = fechaEnvio,enviado = enviado,cerrado = cerrado,tipoMuestra = tipoMuestra)
+fun MuestraConglomeradoEntity.toDto() = MuestraConglomeradoDto (id = id, id_mt = id_mt, anio = anio, mes = mes, idcong = idcong, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
 
-fun MuestraConglomeradoDto.toDomain() = MuestraConglomerado(idcongsup = idcongsup,anioSup = anioSup,mesSup = mesSup,perSup = perSup, anio = anio,
-    mes = mes,conglomerado = conglomerado,departamento = departamento,provincia = provincia,distrito = distrito,odeiEnapres = odeiEnapres,
-    usuario = usuario,fechaCreacion = fechaCreacion,fechaEnvio = fechaEnvio,enviado = enviado,cerrado = cerrado,tipoMuestra = tipoMuestra)
+fun MuestraConglomeradoDto.toDomain() = MuestraConglomerado(id = id, id_mt = id_mt, anio = anio, mes = mes, idcong = idcong, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
 
-fun MuestraViviendaDto.toEntity() = MuestraViviendaEntity(
-    idcongsup, anioSup, mesSup, perSup, anio, mes,
-    conglomerado, departamento, provincia, distrito,
-    odeiEnapres, usuario, fechaCreacion, fechaEnvio, enviado, cerrado, tipoMuestra
-)
+// ── Muestra Vivienda───────────────────────────────────────────────────────
+
+fun MuestraVivienda.toEntity() = MuestraViviendaEntity(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+
+fun MuestraViviendaEntity.toDto() = MuestraViviendaDto(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+fun MuestraViviendaDto.toDomain() = MuestraVivienda(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+
+//fun MuestraViviendaDto.toEntity() = MuestraViviendaEntity(
+//    idcongsup, anioSup, mesSup, perSup, anio, mes,
+//    conglomerado, departamento, provincia, distrito,
+//    odeiEnapres, usuario, fechaCreacion, fechaEnvio, enviado, cerrado, tipoMuestra
+//)
 
 // Construir resumen por periodo a partir de una lista de muestras
 //fun List<MuestraConglomeradoDto>.toCargaEntities(tipo: String): List<CargaTrabajoEntity> {
