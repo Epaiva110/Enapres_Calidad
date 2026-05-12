@@ -6,11 +6,11 @@ import com.minedu.gob.pe.enaprescalidad.data.local.database.datasource.UsuarioLo
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.UsuarioRemoteDataSource
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
-import com.minedu.gob.pe.enaprescalidad.ui.screens.main.MainUiState
 import com.minedu.gob.pe.enaprescalidad.utils.CryptoManager
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.String
 
 @Singleton
 class UsuarioRepository @Inject constructor(
@@ -19,20 +19,22 @@ class UsuarioRepository @Inject constructor(
     private val crypto: CryptoManager
 ) {
 
-    suspend fun login(usuario: String, password: String, isOnline: Boolean): LoginResult {
+    suspend fun login(user: String, password: String, isOnline: Boolean): LoginResult {
         return if (isOnline) {
-            loginOnline(usuario, password)
+            loginOnline(user, password)
         } else {
-            loginOffline(usuario, password)
+            loginOffline(user, password)
         }
     }
 
-    private suspend fun loginOnline(usuario: String, password: String): LoginResult {
+    private suspend fun loginOnline(user: String, password: String): LoginResult {
 
         return try {
 
-            val dto = remote.login(usuario, password)
+            val dto = remote.login(user, password)
                 ?: return LoginResult.Error("Usuario o contraseña incorrectos")
+
+            Log.i("Error00000001",dto.toString())
 
             val domain = dto.toDomain()
 
@@ -42,7 +44,7 @@ class UsuarioRepository @Inject constructor(
                 Log.e("Error_Save", "Error guardando en Room", e)
             }
 
-            if (!domain.activo) {
+            if (!domain.active) {
                 LoginResult.Inactive(domain)
             } else {
                 LoginResult.Success(domain)
@@ -54,17 +56,17 @@ class UsuarioRepository @Inject constructor(
         }
     }
 
-    private suspend fun loginOffline(usuario: String, password: String): LoginResult {
+    private suspend fun loginOffline(user: String, password: String): LoginResult {
 
-        val localUser = local.get(usuario)
+        val localUser = local.get(user)
             ?: return LoginResult.Error("Sin datos offline")
 
         val decrypted = crypto.decrypt(localUser.password)
-        val activo = localUser.activo
+        val activo = localUser.active
 
         // 1000 ms = 1 segundo - 60 s = 1 minuto - 60 min = 1 hora - 24 h = 1 día
 
-        val tiempo = (System.currentTimeMillis() - localUser.lastUpdated) / (1000 * 60 * 60 * 24)
+        val tiempo = (System.currentTimeMillis() - localUser.last_connection) / (1000 * 60 * 60 * 24)
         //val tiempo = (System.currentTimeMillis() - localUser.lastUpdated) / (1000 * 60)
         Log.i("Tiempo", "Tiempo: $tiempo")
 
@@ -83,16 +85,16 @@ class UsuarioRepository @Inject constructor(
 
     private suspend fun saveUser(user: Usuario, password: String) {
         val entity = UsuarioEntity(
-            usuario = user.usuario,
+            id = user.id,
+            user = user.user,
             password = crypto.encrypt(password),
-            activo = user.activo,
-            nombreusu = user.nombreusu,
+            active = user.active,
+            user_name = user.user_name,
             role = user.role,
-            lastUpdated = System.currentTimeMillis()
+            last_connection = System.currentTimeMillis()
         )
         local.save(entity)
     }
-
     suspend fun logout() {
         local.logout()
     }

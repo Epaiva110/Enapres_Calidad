@@ -65,8 +65,8 @@ fun UpdateScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Inicia la observación reactiva una sola vez cuando el usuario esté disponible
-    LaunchedEffect(user?.codsup) {
-        user?.codsup?.let { viewModel.observeMarcos(it) }
+    LaunchedEffect(user?.user) {
+        user?.user?.let { viewModel.observeMarcos(it) }
     }
 
     // Muestra snackbars para éxito/error de sync
@@ -111,13 +111,13 @@ fun UpdateScreen(
         UpdateScreenContent(
             uiState = uiState,
             onFetchMarcos = {
-                viewModel.fetchMarcos(user?.codsup ?: "", hasInternet(context))
+                viewModel.fetchMarcos(user?.user ?: "", hasInternet(context))
             },
             onSyncAll = {
-                viewModel.syncAll(user?.codsup ?: "", hasInternet(context))
+                viewModel.syncAll(user?.user ?: "", hasInternet(context))
             },
             onSyncType = { type ->
-                viewModel.syncType(type, user?.codsup ?: "", hasInternet(context))
+                viewModel.syncType(type, user?.user ?: "", hasInternet(context))
             },
             modifier = Modifier.padding(padding)
         )

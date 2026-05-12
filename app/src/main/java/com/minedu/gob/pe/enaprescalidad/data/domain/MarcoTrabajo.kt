@@ -5,12 +5,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MarcoTrabajo (
     val id: Int,
-    val usuario: String,
+    val user: String,
     val orden: Int,
-    val tipo: String,             // "CONGLOMERADO" | "VIVIENDA" | "REENTREVISTA"
-    val fechaProgramacion: String,
+    val tipo: String,
+    val fecha: String,
     val anio: Int,
-    val mes: Int,              // "Enero", "Febrero"...
+    val mes: Int,
     val periodo: Int,
     val totalMuestra: Int,
     val totalActualizado: Int,
@@ -22,3 +22,5 @@ data class MarcoTrabajo (
     val estaAlDia: Boolean
         get() = actualizado == true && totalActualizado!! >= totalMuestra && totalMuestra > 0
 }
+
+

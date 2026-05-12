@@ -9,7 +9,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
-import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDaos
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDao
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncEntity
@@ -40,12 +40,12 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MarcoTrabajoEntity
         MuestraReentrevistaEntity::class,
         MarcoTrabajoEntity::class
                ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {
 
-    abstract fun usuarioDao(): UsuarioDaos
+    abstract fun usuarioDao(): UsuarioDao
     abstract fun muestraconglomeradoDao(): MuestraConglomeradoDao
     abstract fun syncDao(): SyncDao
 

@@ -4,9 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Usuario(
-    val usuario: String,
+    val id: Int,
+    val user: String,
     val password: String,
-    val activo: Boolean,
-    val nombreusu: String,
-    val role: String
+    val active: Boolean,
+    val user_name: String,
+    val role: String,
+    val last_connection: Long?
 )

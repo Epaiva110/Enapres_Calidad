@@ -10,11 +10,11 @@ class UsuarioApi @Inject constructor(
 ) {
     private val postgrest = client.postgrest
 
-    suspend fun login(usuario: String, password: String): UsuarioDto? {
+    suspend fun login(user: String, password: String): UsuarioDto? {
         return postgrest.from("usuario")
             .select {
                 filter {
-                    eq("usuario", usuario)
+                    eq("user", user)
                     eq("password", password)
                 }
             }

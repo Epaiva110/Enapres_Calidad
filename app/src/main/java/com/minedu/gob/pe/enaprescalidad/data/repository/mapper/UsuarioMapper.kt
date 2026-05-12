@@ -4,29 +4,37 @@ import com.minedu.gob.pe.enaprescalidad.data.domain.Usuario
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.UsuarioDto
 
+
 // ── Usuario ───────────────────────────────────────────────────────
 
+
+
 fun UsuarioDto.toDomain() = Usuario(
-    usuario = usuario,
+    id = id,
+    user = user,
     password = password,
-    nombreusu = nombreusu,
+    user_name = user_name,
     role = role,
-    activo = activo
+    active = active,
+    last_connection = last_connection
 )
 
 fun UsuarioEntity.toDomain() = Usuario(
-    usuario = usuario,
+    id = id,
+    user = user,
     password = password,
-    nombreusu = nombreusu,
+    user_name = user_name,
     role = role,
-    activo = activo
+    active = active,
+    last_connection = last_connection
 )
 
 fun UsuarioDto.toEntity() = UsuarioEntity(
-    usuario = usuario,
+    id = id,
+    user = user,
     password = password,
-    activo = activo,
-    nombreusu = nombreusu,
+    user_name = user_name,
     role = role,
-    lastUpdated = System.currentTimeMillis()
+    active = active,
+    last_connection = System.currentTimeMillis()
 )

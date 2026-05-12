@@ -22,7 +22,7 @@ class SessionManager @Inject constructor() {
 }
 
 data class UserSession(
-    val codsup: String,
-    val name: String,
+    val user: String,
+    val user_name: String,
     val role: String
 )

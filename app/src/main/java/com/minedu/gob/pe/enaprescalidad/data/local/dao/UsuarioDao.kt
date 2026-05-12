@@ -4,12 +4,12 @@ import androidx.room.*
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 
 @Dao
-interface UsuarioDaos {
+interface UsuarioDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(usuario: UsuarioEntity)
+    suspend fun insert(user: UsuarioEntity)
 
-    @Query("SELECT * FROM usuario WHERE usuario = :user LIMIT 1")
+    @Query("SELECT * FROM usuario WHERE user = :user LIMIT 1")
     suspend fun getUser(user: String): UsuarioEntity?
 
     @Query("DELETE FROM usuario")

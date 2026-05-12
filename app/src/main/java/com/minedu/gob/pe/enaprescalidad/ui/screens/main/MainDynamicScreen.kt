@@ -185,8 +185,8 @@ fun MainDynamicScreen(
         drawerContent = {
             ModalDrawerSheet {
                 SideBar(
-                    usuario = user?.codsup ?: "",
-                    nombre = user?.name ?: "",
+                    usuario = user?.user ?: "",
+                    nombre = user?.user_name ?: "",
                     role = user?.role ?: "",
                     items = uiState.sidebarItems,
                     selectedItemId = uiState.selectedItemId,

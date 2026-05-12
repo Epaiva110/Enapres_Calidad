@@ -8,7 +8,7 @@ import androidx.room.Entity
 )
 data class MarcoTrabajoEntity(
     val id: Int,
-    val usuario: String,
+    val user: String,
     val orden: Int,
     val tipo: String,             // "CONGLOMERADO" | "VIVIENDA" | "REENTREVISTA"
     val fechaProgramacion: String,

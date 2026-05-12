@@ -3,25 +3,21 @@ package com.minedu.gob.pe.enaprescalidad.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "MuestraConglomerado")
+@Entity(tableName = "Muestra_Conglomerado")
 data class MuestraConglomeradoEntity(
-    @PrimaryKey val idcongsup: String,
-    val anioSup: Int,
-    val mesSup: Int,
-    val perSup: Int,
+    @PrimaryKey val id: Int,
+    val id_mt: Int,
     val anio: Int,
     val mes: Int,
+    val idcong: String,
     val conglomerado: String,
     val departamento: String,
     val provincia: String,
     val distrito: String,
-    val odeiEnapres: String,
-    val usuario: String,
-    val fechaCreacion: String,
-    val fechaEnvio: String?,
-    val enviado: Boolean,
+    val odeienapres: String,
+    val sincronizado: Boolean,
     val cerrado: Boolean,
-    val tipoMuestra: Int
+    val fecha_sincronizacion: String?,
 )
 
 

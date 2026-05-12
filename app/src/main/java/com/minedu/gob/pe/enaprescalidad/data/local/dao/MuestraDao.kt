@@ -10,7 +10,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 
 @Dao
 interface MuestraConglomeradoDao {
-    @Query("SELECT * FROM muestraConglomerado WHERE usuario = :user ORDER BY anioSup, mesSup, perSup")
+    @Query("SELECT m.* FROM Muestra_Conglomerado as m left join MarcoTrabajo as t on m.id_mt = t.id WHERE user = :user ORDER BY anioSup, mesSup, perSup")
     suspend fun getMuestraUsuario(user: String): List<MuestraConglomeradoEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

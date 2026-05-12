@@ -51,8 +51,8 @@ class LoginViewModel @Inject constructor(
 
                     sessionManager.setUser(
                         UserSession(
-                            codsup = user.usuario,
-                            name = user.nombreusu,
+                            user = user.user,
+                            user_name = user.user_name,
                             role = user.role
                         )
                     )
