@@ -19,18 +19,6 @@ import jakarta.inject.Inject
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import kotlinx.coroutines.Job
 
-
-/**
- * ViewModel exclusivo de UpdateScreen.
- *
- * Responsabilidades:
- *  - Observar los marcos de trabajo locales (Room → Flow).
- *  - Disparar la búsqueda remota de marcos.
- *  - Coordinar la sincronización de muestras (un tipo a la vez).
- *  - Exponer un único [UpdateUiState] inmutable a la UI.
- *
- * No conoce nada de Compose ni de Context.
- */
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
     private val marcoRepo: MarcoTrabajoRepository,
@@ -49,38 +37,17 @@ class UpdateViewModel @Inject constructor(
                 _uiState.update { state ->
                     when (result) {
                         is MarcoTrabajoResultLocal.Success -> state.copy(marcos = result.data)
-                        is MarcoTrabajoResultLocal.Empty   -> state.copy(marcos = emptyList())
-                        is MarcoTrabajoResultLocal.Error   -> state.copy(marcos = emptyList(), marcoError = result.message)
+                        is MarcoTrabajoResultLocal.Empty -> state.copy(marcos = emptyList())
+                        is MarcoTrabajoResultLocal.Error -> state.copy(
+                            marcos = emptyList(),
+                            marcoError = result.message
+                        )
                     }
                 }
             }
         }
     }
 
-    // ── Observación reactiva de marcos ────────────────────────────────────────
-
-    /**
-     * Llama esto UNA vez desde LaunchedEffect cuando el usuario está disponible.
-     * Inicia la observación reactiva: cada cambio en Room actualiza la UI automáticamente.
-     */
-//    fun observeMarcos(userId: String) {
-//        viewModelScope.launch {
-//            marcoRepo.getMarcoTrabajoLocal(userId).collect { result ->
-//                _uiState.update { state ->
-//                    when (result) {
-//                        is MarcoTrabajoResultLocal.Success ->
-//                            state.copy(marcos = result.data)
-//                        is MarcoTrabajoResultLocal.Empty ->
-//                            state.copy(marcos = emptyList())
-//                        is MarcoTrabajoResultLocal.Error ->
-//                            state.copy(marcos = emptyList(), marcoError = result.message)
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    // ── Búsqueda de marcos (Card 1) ───────────────────────────────────────────
 
     /**
      * Descarga los marcos de trabajo del servidor y los guarda en Room.
@@ -96,10 +63,22 @@ class UpdateViewModel @Inject constructor(
 
             _uiState.update { state ->
                 when (result) {
-                    is MarcoTrabajoResultRemote.Success ->
-                        state.copy(isLoadingMarcos = false, marcoSuccess = true, lastSyncType = null )
+                    is MarcoTrabajoResultRemote.Success -> {
+
+//                        for (data in result.data) {
+//                            muestraRepo.updateMT(id = data.id, userId)
+//                        }
+
+                        state.copy(
+                            isLoadingMarcos = false,
+                            marcoSuccess = true,
+                            lastSyncType = null
+                        )
+                    }
+
                     is MarcoTrabajoResultRemote.Empty ->
                         state.copy(isLoadingMarcos = false, marcoError = result.message)
+
                     is MarcoTrabajoResultRemote.Error ->
                         state.copy(isLoadingMarcos = false, marcoError = result.message)
                 }
@@ -120,9 +99,9 @@ class UpdateViewModel @Inject constructor(
             _uiState.update { it.copy(syncingType = type, syncError = null) }
 
             val result = when (type) {
-                SyncType.CONGLOMERADO -> marcoRepo.getMarcoTrabajoTipo(userId,"Conglomerado", isOnline)
-                SyncType.VIVIENDA     -> marcoRepo.getMarcoTrabajoTipo(userId,"Vivienda", isOnline)
-                SyncType.REENTREVISTA -> marcoRepo.getMarcoTrabajoTipo(userId,"Reentrevista", isOnline)
+                SyncType.CONGLOMERADO -> marcoRepo.getMarcoTrabajoTipo(userId,"Conglomerado",isOnline)
+                SyncType.VIVIENDA -> marcoRepo.getMarcoTrabajoTipo(userId, "Vivienda", isOnline)
+                SyncType.REENTREVISTA -> marcoRepo.getMarcoTrabajoTipo(userId,"Reentrevista",isOnline)
             }
             _uiState.update { state ->
                 when (result) {
@@ -151,7 +130,7 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(syncingIndividualId = cargaId, syncError = null) }
 
-//            val result = muestraRepo.syncMuestraIndividual(cargaId, userId, isOnline)
+//            val result = muestraRepo.syncMuestraConglomerado(cargaId, userId, isOnline)
 //
 //            _uiState.update { state ->
 //                when (result) {
@@ -163,6 +142,40 @@ class UpdateViewModel @Inject constructor(
 //                        state.copy(syncingIndividualId = null, syncError = result.message)
 //                }
 //            }
+        }
+    }
+
+    fun syncItem(type: String, idmt: Int, userId: String, isOnline: Boolean) {
+        if (_uiState.value.isAnyLoading) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(idItem = idmt, syncError = null) }
+            val result =  when (type) {
+                "Conglomerado"-> muestraRepo.syncMuestraConglomerado(idmt, userId, isOnline)
+                "Vivienda" -> muestraRepo.syncMuestraVivienda(idmt, userId, isOnline)
+                "Reentrevista" -> muestraRepo.syncMuestraReentrevista(idmt, userId, isOnline)
+                else -> return@launch
+            }
+
+            _uiState.update { state ->
+                when (result) {
+                    is MuestraResult.Success -> {
+                        muestraRepo.updateMT(idmt, userId)
+
+                        state.copy(
+                            idItem = 0,
+                            syncSuccess = true
+                        )
+                    }
+
+                    is MuestraResult.Empty ->
+                        state.copy(idItem = 0, syncError = result.message)
+
+                    is MuestraResult.Error ->
+                        state.copy(idItem = 0, syncError = result.message)
+                }
+            }
+
         }
     }
 
@@ -180,9 +193,18 @@ class UpdateViewModel @Inject constructor(
 //                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(userId, isOnline)
 //                    SyncType.VIVIENDA     -> muestraRepo.syncMuestraVivienda(userId, isOnline)
 //                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(userId, isOnline)
-                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(10, "SUP001",isOnline)
-                    SyncType.VIVIENDA     -> muestraRepo.syncMuestraVivienda(11, "SUP001",isOnline)
-                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(12, "SUP001",isOnline)
+                    SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(
+                        10,
+                        "SUP001",
+                        isOnline
+                    )
+
+                    SyncType.VIVIENDA -> muestraRepo.syncMuestraVivienda(11, "SUP001", isOnline)
+                    SyncType.REENTREVISTA -> muestraRepo.syncMuestraReentrevista(
+                        12,
+                        "SUP001",
+                        isOnline
+                    )
                 }
 
                 // Si un tipo falla, detenemos el proceso
@@ -197,13 +219,11 @@ class UpdateViewModel @Inject constructor(
 
     // ── Limpieza de mensajes transitorios ─────────────────────────────────────
 
-    fun clearSyncSuccess()    = _uiState.update { it.copy(syncSuccess = false) }
-    fun clearSyncError()      = _uiState.update { it.copy(syncError = null) }
-    fun clearMarcoSuccess()   = _uiState.update { it.copy(marcoSuccess = false) }
-    fun clearMarcoError()     = _uiState.update { it.copy(marcoError = null) }
+    fun clearSyncSuccess() = _uiState.update { it.copy(syncSuccess = false) }
+    fun clearSyncError() = _uiState.update { it.copy(syncError = null) }
+    fun clearMarcoSuccess() = _uiState.update { it.copy(marcoSuccess = false) }
+    fun clearMarcoError() = _uiState.update { it.copy(marcoError = null) }
 }
-
-
 
 
 /**
@@ -251,18 +271,23 @@ data class UpdateUiState(
      * ID de la carga individual que está actualizándose ahora mismo.
      * null = nadie en curso. La tabla usa esto para mostrar el spinner en la fila correcta.
      */
-    val syncingIndividualId: String? = null
+    val syncingIndividualId: String? = null,
+
+    val idItem: Int? = 0
 ) {
     // ── Derivados ─────────────────────────────────────────────────────────────
 
     val conglomerados: List<MarcoTrabajo>
         get() = marcos.filter { it.tipo.equals("Conglomerado", ignoreCase = true) }
+            .sortedByDescending { it.orden }
 
     val reentrevistas: List<MarcoTrabajo>
         get() = marcos.filter { it.tipo.equals("Reentrevista", ignoreCase = true) }
+            .sortedByDescending { it.orden }
 
     val viviendas: List<MarcoTrabajo>
         get() = marcos.filter { it.tipo.equals("Vivienda", ignoreCase = true) }
+            .sortedByDescending { it.orden }
 
     /** Total de marcos pendientes de actualizar. */
     val pendingTotal: Int
@@ -270,5 +295,6 @@ data class UpdateUiState(
 
     /** true si cualquier operación de fondo está en curso. */
     val isAnyLoading: Boolean
-        get() = isLoadingMarcos || syncingType != null || syncingIndividualId != null
+        get() = isLoadingMarcos || syncingType != null || syncingIndividualId != null || idItem != 0
 }
+

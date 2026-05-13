@@ -1,5 +1,6 @@
 package com.minedu.gob.pe.enaprescalidad.data.local.database.datasource
 
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.MarcoTrabajoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
@@ -9,6 +10,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import jakarta.inject.Inject
 
 class MuestraLocalDataSource @Inject constructor (
+    private val daoM: MarcoTrabajoDao,
     private val daoC: MuestraConglomeradoDao,
     private val daoV: MuestraViviendaDao,
     private val daoR: MuestraReentrevistaDao
@@ -21,7 +23,12 @@ class MuestraLocalDataSource @Inject constructor (
     suspend fun get(user: String): List<MuestraConglomeradoEntity> {
         return daoC.getMuestraUsuario(user)
     }
-    suspend fun saveMuestras(user: String, data: List<MuestraConglomeradoEntity>) {
+
+    suspend fun updateMT (id: Int, user: String, sincronizado: Boolean, fecha_sincronizacion: String) {
+        daoM.updateMarcoTrabajo(id, user, sincronizado, fecha_sincronizacion)
+    }
+
+    suspend fun saveMuestrasC(user: String, data: List<MuestraConglomeradoEntity>) {
         daoC.deleteByUsuario(user)
         daoC.insertAll(data)
     }

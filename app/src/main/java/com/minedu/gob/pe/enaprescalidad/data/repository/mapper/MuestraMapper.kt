@@ -1,10 +1,13 @@
 package com.minedu.gob.pe.enaprescalidad.data.repository.mapper
 
 import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraConglomerado
+import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraReentrevista
 import com.minedu.gob.pe.enaprescalidad.data.domain.MuestraVivienda
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraReentrevistaEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraConglomeradoDto
+import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraReentrevistaDto
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.MuestraViviendaDto
 
 // ── Muestra Conglomerado ───────────────────────────────────────────────────────
@@ -22,7 +25,7 @@ fun MuestraConglomeradoDto.toDomain() = MuestraConglomerado(id = id, id_mt = id_
 
 // ── Muestra Vivienda───────────────────────────────────────────────────────
 
-fun MuestraVivienda.toEntity() = MuestraViviendaEntity(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+fun MuestraViviendaDto.toEntity() = MuestraViviendaEntity(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
     departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
     fecha_sincronizacion = fecha_sincronizacion)
 
@@ -30,6 +33,19 @@ fun MuestraViviendaEntity.toDto() = MuestraViviendaDto(id = id, id_mt = id_mt, a
     departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
     fecha_sincronizacion = fecha_sincronizacion)
 fun MuestraViviendaDto.toDomain() = MuestraVivienda(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+
+// ── Muestra Reentrevista───────────────────────────────────────────────────────
+
+fun MuestraReentrevistaDto.toEntity() = MuestraReentrevistaEntity(id = id,id_mt = id_mt,anio = anio,mes = mes,idviv = idviv,conglomerado = conglomerado,
+    departamento = departamento,provincia = provincia,distrito = distrito,odeienapres = odeienapres,sincronizado = sincronizado,cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+
+fun MuestraReentrevistaEntity.toDto() = MuestraReentrevistaDto(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
+    departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
+    fecha_sincronizacion = fecha_sincronizacion)
+fun MuestraReentrevistaDto.toDomain() = MuestraReentrevista(id = id, id_mt = id_mt, anio = anio, mes = mes, idviv = idviv, conglomerado = conglomerado,
     departamento = departamento, provincia = provincia, distrito = distrito, odeienapres = odeienapres, sincronizado = sincronizado, cerrado = cerrado,
     fecha_sincronizacion = fecha_sincronizacion)
 

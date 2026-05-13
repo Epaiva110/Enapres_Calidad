@@ -23,7 +23,6 @@ class MarcoTrabajoLDS @Inject constructor(
 
     suspend fun saveMarcoTrabajoTipo(data: List<MarcoTrabajoEntity>) {
         val first = data.firstOrNull() ?: return
-
         dao.deleteByUsuarioAndTipo(first.user, first.tipo)
         dao.insertAll(data)
     }

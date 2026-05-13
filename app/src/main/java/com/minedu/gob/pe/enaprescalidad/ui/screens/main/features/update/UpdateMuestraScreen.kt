@@ -114,10 +114,18 @@ fun UpdateScreen(
                 viewModel.fetchMarcos(user?.user ?: "", hasInternet(context))
             },
             onSyncAll = {
-                viewModel.syncAll(user?.user ?: "", hasInternet(context))
+                //viewModel.syncAll(user?.user ?: "", hasInternet(context))
             },
             onSyncType = { type ->
                 viewModel.syncType(type, user?.user ?: "", hasInternet(context))
+            },
+            onSyncItem = { marco ->
+                viewModel.syncItem(
+                    type = marco.tipo,
+                    idmt = marco.id,
+                    userId = user?.user ?: "",
+                    isOnline = hasInternet(context)
+                )
             },
             modifier = Modifier.padding(padding)
         )
@@ -138,6 +146,7 @@ fun UpdateScreenContent(
     onFetchMarcos: () -> Unit,
     onSyncAll: () -> Unit,
     onSyncType: (SyncType) -> Unit,
+    onSyncItem: (MarcoTrabajo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -171,6 +180,8 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.CONGLOMERADO,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.CONGLOMERADO) },
+            onSyncItem = onSyncItem,
+            isSyncItem = uiState.idItem != 0
         )
 
         // Sección Reentrevista
@@ -180,6 +191,8 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.REENTREVISTA,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.REENTREVISTA) },
+            onSyncItem = onSyncItem,
+            isSyncItem = uiState.idItem != 0
         )
 
         // Sección Vivienda
@@ -189,6 +202,8 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.VIVIENDA,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.VIVIENDA) },
+            onSyncItem = onSyncItem,
+            isSyncItem = uiState.idItem != 0
         )
 
         Spacer(Modifier.height(32.dp))
@@ -307,7 +322,7 @@ fun DescargaInfoCard(
 
             FilledTonalButton(
                 onClick = onSyncAll,
-                enabled = !isAnyLoading,
+                enabled = (!isAnyLoading && hasPending),
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White.copy(alpha = 0.12f),
@@ -327,7 +342,10 @@ fun DescargaInfoCard(
                     Icon(Icons.Default.CloudSync, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        "Descargar todas las muestras pendientes",
+                        if (hasPending)
+                            "Descargar todas las muestras pendientes"
+                        else
+                            "No hay muestras pendientes por descargar",
                         style = MaterialTheme.typography.labelMedium,
                     )
                 }
@@ -341,8 +359,10 @@ fun CargaSection(
     title: String,
     cargas: List<MarcoTrabajo>,
     isSyncingThisGroup: Boolean,
+    isSyncItem: Boolean,
     isAnyLoading: Boolean,
     onSyncGroup: () -> Unit,
+    onSyncItem: (MarcoTrabajo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -449,7 +469,10 @@ fun CargaSection(
                         Column {
                             CargaTableHeader()
                             cargas.forEachIndexed { index, carga ->
-                                CargaTableRow(carga = carga)
+                                CargaTableRow(
+                                    carga = carga,
+                                    onSyncItem = onSyncItem,
+                                    isSyncItem = isSyncItem)
                                 if (index < cargas.lastIndex) {
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
@@ -469,6 +492,8 @@ fun CargaSection(
 @Composable
 fun CargaTableRow(
     carga: MarcoTrabajo,
+    isSyncItem: Boolean,
+    onSyncItem: (MarcoTrabajo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isReady = carga.estaAlDia
@@ -536,7 +561,7 @@ fun CargaTableRow(
         // Col 5: Botón acción
         Box(Modifier.width(COL_ACTION)
             , contentAlignment = Alignment.Center) {
-            if (carga.sincronizado) {
+            if (isSyncItem) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
                     strokeWidth = 2.dp,
@@ -544,7 +569,9 @@ fun CargaTableRow(
                 )
             } else {
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        onSyncItem(carga)
+                    },
                     enabled = !carga.sincronizado,
                     modifier = Modifier.size(32.dp)
                 ) {

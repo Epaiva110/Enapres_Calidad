@@ -24,6 +24,27 @@ interface MarcoTrabajoDao {
     @Query("DELETE FROM MarcoTrabajo WHERE user = :user AND tipo = :tipo")
     suspend fun deleteByUsuarioAndTipo(user: String, tipo: String)
 
+    @Query("""
+    UPDATE MarcoTrabajo
+    SET 
+        descargas = (
+            SELECT COUNT(*)
+            FROM Muestra_Conglomerado
+            WHERE id_mt = :id 
+              AND user = :user
+        ),
+        sincronizado = :sincronizado,
+        fecha_sincronizacion = :fecha_sincronizacion
+    WHERE id = :id 
+      AND user = :user
+""")
+    suspend fun updateMarcoTrabajo(
+        id: Int,
+        user: String,
+        sincronizado: Boolean,
+        fecha_sincronizacion: String
+    )
+
 //    @Insert(onConflict = OnConflictStrategy.REPLACE)
 //    suspend fun insertAll(items: List<MarcoTrabajoEntity>)
 //
