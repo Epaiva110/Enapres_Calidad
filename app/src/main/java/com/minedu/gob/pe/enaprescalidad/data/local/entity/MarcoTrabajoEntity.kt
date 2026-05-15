@@ -16,9 +16,9 @@ data class MarcoTrabajoEntity(
     val mes: Int,
     val periodo: Int,
     val meta: Int,
-    val descargas: Int,
-    val sincronizado: Boolean,
-    val fecha_sincronizacion: String?,
+    //val descargas: Int,
+    //val sincronizado: Boolean,
+    val fecha_sincronizacion: Long?,
     val proyecto: Int
 )
 

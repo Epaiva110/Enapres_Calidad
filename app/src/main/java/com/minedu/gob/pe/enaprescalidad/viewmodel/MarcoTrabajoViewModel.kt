@@ -38,14 +38,14 @@ class MarcoTrabajoViewModel @Inject constructor(
         }
     }
 
-    fun loadMarcoTrabajo(user: String, tipo: String) {
-        viewModelScope.launch {
-            repository.getMarcoTrabajoTipo(user, tipo)
-                .collect {
-                    (marcoTrabajo as MutableStateFlow).value = it
-                }
-        }
-    }
+//    fun loadMarcoTrabajo(user: String, tipo: String) {
+//        viewModelScope.launch {
+//            repository.getMarcoTrabajoTipo(user, tipo)
+//                .collect {
+//                    (marcoTrabajo as MutableStateFlow).value = it
+//                }
+//        }
+//    }
 
     fun loadMarcoTrabajo(user: String) {
         viewModelScope.launch {

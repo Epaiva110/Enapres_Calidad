@@ -1,6 +1,7 @@
 package com.minedu.gob.pe.enaprescalidad.data.remote.supabase.api
 
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.dto.UsuarioDto
+import com.minedu.gob.pe.enaprescalidad.utils.formatDate
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import jakarta.inject.Inject
@@ -26,10 +27,13 @@ class UsuarioApi @Inject constructor(
     }
 
     suspend fun update(user: String, lastConnection: Long) {
-        val formatted = Instant.ofEpochMilli(lastConnection)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDateTime()
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+//        val formatted = Instant.ofEpochMilli(lastConnection)
+//            .atZone(ZoneId.systemDefault())
+//            .toLocalDateTime()
+//            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
+        val formatted = formatDate(lastConnection)
+
         postgrest.from("usuario")
             .update(
                 {

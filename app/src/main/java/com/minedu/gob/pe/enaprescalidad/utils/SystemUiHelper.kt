@@ -20,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 
-
 @Composable
 fun SetupMapSystemUI(
     isDarkTheme: Boolean = isSystemInDarkTheme(),

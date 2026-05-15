@@ -13,31 +13,31 @@ data class UsuarioDto(
     val active: Boolean,
     val user_name: String,
     val role: String,
-    @Serializable(with = TimestampToLongSerializer::class)
-    val last_connection: Long?
+    //@Serializable(with = TimestampToLongSerializer::class)
+    val last_connection: String?
 )
 
-object TimestampToLongSerializer : KSerializer<Long?> {
-
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("TimestampToLong", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): Long {
-        val value = decoder.decodeString()
-
-        return LocalDateTime.parse(value)
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-    }
-
-    override fun serialize(encoder: Encoder, value: Long?) {
-        if (value == null) {
-            encoder.encodeNull()
-            return
-        }
-
-        val iso = Instant.ofEpochMilli(value).toString()
-        encoder.encodeString(iso)
-    }
-}
+//object TimestampToLongSerializer : KSerializer<Long?> {
+//
+//    override val descriptor: SerialDescriptor =
+//        PrimitiveSerialDescriptor("TimestampToLong", PrimitiveKind.STRING)
+//
+//    override fun deserialize(decoder: Decoder): Long {
+//        val value = decoder.decodeString()
+//
+//        return LocalDateTime.parse(value)
+//            .atZone(ZoneId.systemDefault())
+//            .toInstant()
+//            .toEpochMilli()
+//    }
+//
+//    override fun serialize(encoder: Encoder, value: Long?) {
+//        if (value == null) {
+//            encoder.encodeNull()
+//            return
+//        }
+//
+//        val iso = Instant.ofEpochMilli(value).toString()
+//        encoder.encodeString(iso)
+//    }
+//}

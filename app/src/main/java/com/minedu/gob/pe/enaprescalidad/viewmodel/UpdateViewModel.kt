@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import jakarta.inject.Inject
-
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import kotlinx.coroutines.Job
 
@@ -118,6 +117,56 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
+    fun syncTypeT(idc: List<Int>, idR: List<Int>, idV: List<Int>,isOnline: Boolean) {
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(syncError = null) }
+            muestraRepo.syncMuestraConglomeradoL(idc, isOnline)
+            muestraRepo.syncMuestraViviendaL(idV, isOnline)
+            val result = muestraRepo.syncMuestraReentrevistaL(idR, isOnline)
+
+            _uiState.update { state ->
+                when (result) {
+                    is MuestraResult.Success ->
+                        state.copy(syncingType = null, syncSuccess = true)
+
+                    is MuestraResult.Empty ->
+                        state.copy(syncingType = null, syncError = result.message)
+
+                    is MuestraResult.Error ->
+                        state.copy(syncingType = null, syncError = result.message)
+                }
+            }
+
+        }
+    }
+
+    fun syncTypeM(type: SyncType, idc: List<Int>, idR: List<Int>, idV: List<Int>,isOnline: Boolean) {
+        if (_uiState.value.isAnyLoading) return // evita solapamiento
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(syncingType = type, syncError = null) }
+
+            val result = when (type) {
+                SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomeradoL(idc,isOnline)
+                SyncType.VIVIENDA -> muestraRepo.syncMuestraViviendaL(idV, isOnline)
+                SyncType.REENTREVISTA -> muestraRepo.syncMuestraReentrevistaL(idR, isOnline)
+            }
+            _uiState.update { state ->
+                when (result) {
+                    is MuestraResult.Success ->
+                        state.copy(syncingType = null, syncSuccess = true, lastSyncType = type)
+
+                    is MuestraResult.Empty ->
+                        state.copy(syncingType = null, syncError = result.message)
+
+                    is MuestraResult.Error ->
+                        state.copy(syncingType = null, syncError = result.message)
+                }
+            }
+        }
+    }
+
     /**
      * Actualiza los datos de UNA carga individual (por su id).
      * Llama al endpoint que recarga solo esa carga concreta.
@@ -151,9 +200,9 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(idItem = idmt, syncError = null) }
             val result =  when (type) {
-                "Conglomerado"-> muestraRepo.syncMuestraConglomerado(idmt, userId, isOnline)
-                "Vivienda" -> muestraRepo.syncMuestraVivienda(idmt, userId, isOnline)
-                "Reentrevista" -> muestraRepo.syncMuestraReentrevista(idmt, userId, isOnline)
+                "Conglomerado"-> muestraRepo.syncMuestraConglomerado(idmt,  isOnline)
+                "Vivienda" -> muestraRepo.syncMuestraVivienda(idmt,  isOnline)
+                "Reentrevista" -> muestraRepo.syncMuestraReentrevista(idmt,  isOnline)
                 else -> return@launch
             }
 
@@ -195,14 +244,12 @@ class UpdateViewModel @Inject constructor(
 //                    SyncType.REENTREVISTA -> muestraRepo.syncReentrevista(userId, isOnline)
                     SyncType.CONGLOMERADO -> muestraRepo.syncMuestraConglomerado(
                         10,
-                        "SUP001",
                         isOnline
                     )
 
-                    SyncType.VIVIENDA -> muestraRepo.syncMuestraVivienda(11, "SUP001", isOnline)
+                    SyncType.VIVIENDA -> muestraRepo.syncMuestraVivienda(11,isOnline)
                     SyncType.REENTREVISTA -> muestraRepo.syncMuestraReentrevista(
                         12,
-                        "SUP001",
                         isOnline
                     )
                 }
@@ -276,6 +323,16 @@ data class UpdateUiState(
     val idItem: Int? = 0
 ) {
     // ── Derivados ─────────────────────────────────────────────────────────────
+
+//    val idC = buildList {
+//        marcos.forEach {
+//            if (!it.sincronizado && it.tipo.equals("Conglomerado", ignoreCase = true)) {
+//                add(it.id)
+//            }
+//        }
+//    }
+
+
 
     val conglomerados: List<MarcoTrabajo>
         get() = marcos.filter { it.tipo.equals("Conglomerado", ignoreCase = true) }

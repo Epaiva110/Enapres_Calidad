@@ -15,12 +15,14 @@ data class MarcoTrabajo (
     val meta: Int,
     val descargas: Int,
     val sincronizado: Boolean,
-    val fecha_sincronizacion: String?,
+    val fecha_sincronizacion: Long?,
     val proyecto: Int
 ){
     // REGLA: Está realmente al día solo si dice "Si" Y el total coincide
     val estaAlDia: Boolean
-        get() = sincronizado == true && descargas!! >= meta && meta > 0
+        get() = sincronizado && descargas >= meta && meta > 0
+    val fechasincronizacionAlter: Long?
+        get() = if (descargas>0) fecha_sincronizacion else null
 }
 
 

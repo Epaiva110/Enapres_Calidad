@@ -14,6 +14,68 @@ class MuestraApi @Inject constructor(
 ) {
     private val postgrest = client.postgrest
 
+    suspend fun marcarSincronizadoC(id: Int, fecha: String) {
+        postgrest.from("Muestra_Conglomerado")
+            .update(
+                mapOf(
+                    "sincronizado" to true,
+                    "fecha_sincronizacion" to fecha,
+                )
+            ) {
+                filter { eq("id", id) }
+            }
+    }
+
+    /*
+    Obteer muestras por listas
+    */
+
+    suspend fun getMuestraCL(
+        idmt: List<Int>
+    ): List<MuestraConglomeradoDto> {
+
+        return postgrest
+            .from("Muestra_Conglomerado")
+            .select {
+                filter {
+                    isIn("id_mt", idmt)
+                }
+            }
+            .decodeList()
+    }
+
+    suspend fun getMuestraVL(
+        idmt: List<Int>
+    ): List<MuestraViviendaDto> {
+
+        return postgrest
+            .from("Muestra_Vivienda")
+            .select {
+                filter {
+                    isIn("id_mt", idmt)
+                }
+            }
+            .decodeList()
+    }
+
+    suspend fun getMuestraRL(
+        idmt: List<Int>
+    ): List<MuestraReentrevistaDto> {
+
+        return postgrest
+            .from("Muestra_Reentrevista")
+            .select {
+                filter {
+                    isIn("id_mt", idmt)
+                }
+            }
+            .decodeList()
+    }
+
+    /*
+    Obteer muestras por valor unico
+    */
+
     suspend fun getMuestraC(idmt: Int): List<MuestraConglomeradoDto> {
         return postgrest.from("Muestra_Conglomerado")
             .select {

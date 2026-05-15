@@ -16,20 +16,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraReentrevistaEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraViviendaEntity
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MarcoTrabajoEntity
-
-//@Database(
-//    entities = [
-//        UsuarioEntity::class,
-//        MuestraConglomeradoEntity::class
-//    ],
-//    version = 2,
-//    exportSchema = false
-//)
-//abstract class AppDataBase : RoomDatabase() {
-//
-//    abstract fun usuarioDao(): UsuarioDaos
-//    abstract fun muestraconglomeradoDao(): MuestraConglomeradoDao
-//}
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.views.MarcoTrabajoView
 
 @Database(
     entities = [
@@ -40,7 +27,8 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MarcoTrabajoEntity
         MuestraReentrevistaEntity::class,
         MarcoTrabajoEntity::class
                ],
-    version = 13,
+    views = [MarcoTrabajoView::class],
+    version = 15,
     exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {
@@ -49,9 +37,9 @@ abstract class AppDataBase : RoomDatabase() {
     abstract fun muestraconglomeradoDao(): MuestraConglomeradoDao
     abstract fun syncDao(): SyncDao
 
-    abstract fun muestraViviendaDao(): MuestraViviendaDao           // ← agregar
-    abstract fun muestraReentrevistaDao(): MuestraReentrevistaDao   // ← agregar
-    abstract fun marcoTrabajoDao(): MarcoTrabajoDao                 // ← agregar
+    abstract fun muestraViviendaDao(): MuestraViviendaDao
+    abstract fun muestraReentrevistaDao(): MuestraReentrevistaDao
+    abstract fun marcoTrabajoDao(): MarcoTrabajoDao
 
 
     companion object {

@@ -72,24 +72,24 @@ class MarcoTrabajoRepository @Inject constructor(
 
 
     //-------------------------Local
-    fun getMarcoTrabajoTipo(
-        user: String,
-        tipo: String
-    ): Flow<MarcoTrabajoResultLocal> {
-
-        return local.getMarcoTrabajoTipo(tipo, user)
-            .map { data ->
-
-                if (data.isEmpty()) {
-                    MarcoTrabajoResultLocal.Empty("No hay datos para este usuario")
-                } else {
-                    val domainList = data.map { it.toDomain() }
-
-                    MarcoTrabajoResultLocal.Success(domainList)
-                }
-
-            }
-    }
+//    fun getMarcoTrabajoTipo(
+//        user: String,
+//        tipo: String
+//    ): Flow<MarcoTrabajoResultLocal> {
+//
+//        return local.getMarcoTrabajoTipo(tipo, user)
+//            .map { data ->
+//
+//                if (data.isEmpty()) {
+//                    MarcoTrabajoResultLocal.Empty("No hay datos para este usuario")
+//                } else {
+//                    val domainList = data.map { it.toDomain() }
+//
+//                    MarcoTrabajoResultLocal.Success(domainList)
+//                }
+//
+//            }
+//    }
 
     fun getMarcoTrabajoLocal(
         user: String,

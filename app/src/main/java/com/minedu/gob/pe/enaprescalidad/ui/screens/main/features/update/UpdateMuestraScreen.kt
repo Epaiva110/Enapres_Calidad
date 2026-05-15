@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.minedu.gob.pe.enaprescalidad.data.domain.MarcoTrabajo
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncType
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
+import com.minedu.gob.pe.enaprescalidad.utils.formatDate
 import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import com.minedu.gob.pe.enaprescalidad.viewmodel.UpdateUiState
@@ -63,6 +64,30 @@ fun UpdateScreen(
     val user by viewModelLogin.currentUser.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val idC = buildList {
+        uiState.conglomerados.forEach {
+            if (!it.sincronizado) {
+                add(it.id)
+            }
+        }
+    }
+
+    val idR= buildList {
+        uiState.reentrevistas.forEach {
+            if (!it.sincronizado) {
+                add(it.id)
+            }
+        }
+    }
+
+    val idV = buildList {
+        uiState.viviendas.forEach {
+            if (!it.sincronizado) {
+                add(it.id)
+            }
+        }
+    }
 
     // Inicia la observación reactiva una sola vez cuando el usuario esté disponible
     LaunchedEffect(user?.user) {
@@ -114,10 +139,13 @@ fun UpdateScreen(
                 viewModel.fetchMarcos(user?.user ?: "", hasInternet(context))
             },
             onSyncAll = {
-                //viewModel.syncAll(user?.user ?: "", hasInternet(context))
+                viewModel.syncTypeT(idC,idR,idV, hasInternet(context))
             },
             onSyncType = { type ->
                 viewModel.syncType(type, user?.user ?: "", hasInternet(context))
+            },
+            onSyncTypeL = { type ->
+                viewModel.syncTypeM(type, idC,idR,idV, hasInternet(context))
             },
             onSyncItem = { marco ->
                 viewModel.syncItem(
@@ -146,6 +174,7 @@ fun UpdateScreenContent(
     onFetchMarcos: () -> Unit,
     onSyncAll: () -> Unit,
     onSyncType: (SyncType) -> Unit,
+    onSyncTypeL: (SyncType) -> Unit,
     onSyncItem: (MarcoTrabajo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -180,6 +209,7 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.CONGLOMERADO,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.CONGLOMERADO) },
+            onSyncGroupM = { onSyncTypeL(SyncType.CONGLOMERADO) },
             onSyncItem = onSyncItem,
             isSyncItem = uiState.idItem != 0
         )
@@ -191,6 +221,7 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.REENTREVISTA,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.REENTREVISTA) },
+            onSyncGroupM = { onSyncTypeL(SyncType.REENTREVISTA) },
             onSyncItem = onSyncItem,
             isSyncItem = uiState.idItem != 0
         )
@@ -202,6 +233,7 @@ fun UpdateScreenContent(
             isSyncingThisGroup = uiState.syncingType == SyncType.VIVIENDA,
             isAnyLoading = uiState.isAnyLoading,
             onSyncGroup = { onSyncType(SyncType.VIVIENDA) },
+            onSyncGroupM = { onSyncTypeL(SyncType.VIVIENDA) },
             onSyncItem = onSyncItem,
             isSyncItem = uiState.idItem != 0
         )
@@ -362,6 +394,7 @@ fun CargaSection(
     isSyncItem: Boolean,
     isAnyLoading: Boolean,
     onSyncGroup: () -> Unit,
+    onSyncGroupM: () -> Unit,
     onSyncItem: (MarcoTrabajo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -442,7 +475,7 @@ fun CargaSection(
                             modifier = Modifier.size(20.dp),
                         )
                     } else {
-                        SyncButton(enabled = !isAnyLoading, onClick = onSyncGroup)
+                        SyncButton(enabled = !isAnyLoading, onClick = onSyncGroupM)
                     }
                 }
 
@@ -507,9 +540,38 @@ fun CargaTableRow(
     )
 
     Row(
-        modifier = modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+        modifier = modifier.padding(horizontal = 0.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+
+        // Col 5: Botón acción
+        Box(Modifier.width(COL_ACTION)
+            , contentAlignment = Alignment.Center) {
+            if (isSyncItem) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = UpdateTokens.ColorInfo
+                )
+            } else {
+                IconButton(
+                    onClick = {
+                        onSyncItem(carga)
+                    },
+                    enabled = !carga.sincronizado,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = "Actualizar",
+                        modifier = Modifier.size(16.dp),
+                        tint = if (isReady) MaterialTheme.colorScheme.outlineVariant
+                        else UpdateTokens.ColorInfo
+                    )
+                }
+            }
+        }
+
         // Col 1: Orden + Periodo
         Column(Modifier.width(COL_ID)) {
             Text(
@@ -552,39 +614,12 @@ fun CargaTableRow(
 
         // Col 4: Fecha
         Text(
-            text = carga.fecha_sincronizacion?: "--/--/--",
+            text = carga.fechasincronizacionAlter?.let { formatDate(it) } ?: "--/--/--",
+            //text = carga.fecha_sincronizacion?: 0,
             modifier = Modifier.width(COL_DATE),
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-
-        // Col 5: Botón acción
-        Box(Modifier.width(COL_ACTION)
-            , contentAlignment = Alignment.Center) {
-            if (isSyncItem) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = UpdateTokens.ColorInfo
-                )
-            } else {
-                IconButton(
-                    onClick = {
-                        onSyncItem(carga)
-                    },
-                    enabled = !carga.sincronizado,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Refresh,
-                        contentDescription = "Actualizar",
-                        modifier = Modifier.size(16.dp),
-                        tint = if (isReady) MaterialTheme.colorScheme.outlineVariant
-                        else UpdateTokens.ColorInfo
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -687,14 +722,14 @@ internal fun CargaTableHeader() {
     Row(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(horizontal = 12.dp, vertical = 7.dp),
+            .padding(horizontal = 0.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text("",         Modifier.width(COL_ACTION),                      style = style)
         Text("ID / Periodo",   Modifier.width(COL_ID),                          style = style)
         Text("Progreso",       Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
         Text("Estado",         Modifier.width(COL_STATUS),                      style = style)
         Text("Últ. act.",      Modifier.width(COL_DATE),                        style = style)
-        Text("",         Modifier.width(COL_ACTION),                      style = style)
 
     }
 }
@@ -704,7 +739,7 @@ private val COL_ID       = 90.dp
 private val COL_PROGRESS = 160.dp
 private val COL_STATUS   = 80.dp
 private val COL_DATE     = 80.dp
-private val COL_ACTION     = 40.dp
+private val COL_ACTION     = 35.dp
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 object UpdateTokens {

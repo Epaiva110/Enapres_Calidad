@@ -34,6 +34,7 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.analytics.Analy
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.home.HomeScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.settings.SettingsScreen
 import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.update.UpdateScreen
+import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.verification.conglomerado.ConglomeradoScreen
 
 /**
  * Área de contenido principal.
@@ -67,6 +68,7 @@ fun MainContent(
                 "settings"   -> SettingsScreen()
                 // Sin parámetros — el ViewModel lo maneja todo internamente
                 "CargaMarco" -> UpdateScreen()
+                "verificacionConglomerado" -> ConglomeradoScreen()
                 else         -> MaintanceScren(Routes.Login)
             }
         }

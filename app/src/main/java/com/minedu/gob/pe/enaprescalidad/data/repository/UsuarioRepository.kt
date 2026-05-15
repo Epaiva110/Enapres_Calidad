@@ -11,6 +11,8 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.UsuarioEntity
 import com.minedu.gob.pe.enaprescalidad.data.remote.supabase.datasource.UsuarioRemoteDataSource
 import com.minedu.gob.pe.enaprescalidad.data.repository.mapper.toDomain
 import com.minedu.gob.pe.enaprescalidad.utils.CryptoManager
+import com.minedu.gob.pe.enaprescalidad.utils.formatDate
+import com.minedu.gob.pe.enaprescalidad.utils.parseDate
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -38,7 +40,11 @@ class UsuarioRepository @Inject constructor(
             val dto = remote.login(user, password)
                 ?: return LoginResult.Error("Usuario o contraseña incorrectos")
 
+            Log.i("Error000000000001", "dto: $dto")
+
             val domain = dto.toDomain()
+
+            Log.i("Error000000000001", "domain: $domain")
 
             remote.update(user, lastconnection)
 
