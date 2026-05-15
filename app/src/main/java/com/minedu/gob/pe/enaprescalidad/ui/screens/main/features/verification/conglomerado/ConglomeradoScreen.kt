@@ -5,8 +5,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,582 +27,495 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
-import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
-import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoUiState
+
 import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoViewModel
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoActions
+import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoUiState
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ENTRY POINT
-// ─────────────────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConglomeradoScreen(
+    onNavigateCuestionario: (Int) -> Unit,
     viewModel: ConglomeradoViewModel = hiltViewModel(),
-    viewModelLogin: LoginViewModel = hiltViewModel(),
+    viewModelLogin: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user by viewModelLogin.currentUser.collectAsStateWithLifecycle()
-    val userId = user?.user ?: ""
-    val context = LocalContext.current
+    val userId = remember(user) { user?.user ?: "" }
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
-    // Inicializa los combos cuando el userId esté disponible
-    LaunchedEffect(userId) {
-        if (userId.isNotBlank()) viewModel.init(userId)
-    }
+    // Init: solo cuando cambia el userId (no en cada recomposición)
+    LaunchedEffect(userId) { if (userId.isNotBlank()) viewModel.init(userId) }
 
-    // Snackbar de éxito al enviar
-    LaunchedEffect(uiState.sendSuccess) {
-        if (uiState.sendSuccess) {
-            snackbarHostState.showSnackbar("Datos enviados correctamente")
-            viewModel.clearSendSuccess()
-        }
-    }
-
-    // Snackbar de error
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar("Error: $it")
-            viewModel.clearError()
-        }
-    }
+    HandleUiEffects(uiState, snackbarHostState, viewModel)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
+
         ConglomeradoContent(
             uiState = uiState,
-            onAnioSelected    = { viewModel.onAnioSelected(userId, it) },
-            onMesSelected     = { viewModel.onMesSelected(userId, it) },
-            onPeriodoSelected = { viewModel.onPeriodoSelected(userId, it) },
-            onProyectoSelected = { viewModel.onProyectoSelected(userId, it) },
-            onEnviar          = { viewModel.onEnviar(userId, hasInternet(context)) },
-            modifier = Modifier.padding(padding),
+            actions = viewModel,
+            onNavigate = onNavigateCuestionario,
+            userId = userId,
+            modifier = Modifier.padding(padding)
         )
     }
+
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PANTALLA STATELESS
-// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+fun HandleUiEffects(
+    uiState: ConglomeradoUiState,
+    snackbarHostState: SnackbarHostState,
+    viewModel: ConglomeradoActions
+) {
+    LaunchedEffect(uiState.sendSuccess) {
+        if (uiState.sendSuccess) {
+            snackbarHostState.showSnackbar("✅ Datos enviados correctamente")
+            viewModel.clearSendSuccess()
+        }
+    }
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar("❌ $it")
+            viewModel.clearError()
+        }
+    }
+}
 
 @Composable
 fun ConglomeradoContent(
     uiState: ConglomeradoUiState,
-    onAnioSelected: (Int) -> Unit,
-    onMesSelected: (Int) -> Unit,
-    onPeriodoSelected: (Int) -> Unit,
-    onProyectoSelected: (Int) -> Unit,
-    onEnviar: () -> Unit,
-    modifier: Modifier = Modifier,
+    actions: ConglomeradoActions,
+    onNavigate: (Int) -> Unit,
+    userId: String,
+    modifier: Modifier = Modifier
 ) {
-    var showUltimaFecha by remember { mutableStateOf(false) }
+    var showHistorial by remember { mutableStateOf(false) }
 
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 16.dp),
+        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
     ) {
-
-        // ── Título ────────────────────────────────────────────────────────────
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Dataset,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
-                )
+                Icon(Icons.Default.Dataset, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    "Conglomerados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                Text("Conglomerados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        item { FiltrosSeccion(uiState, actions, userId) }
+
+        if (uiState.filtroCompleto) {
+            item {
+                AccionesSection(
+                    uiState = uiState,
+                    actions = actions,
+                    onVerMapa = { /* Navegar mapa */ },
+                    onVerHistorial = { showHistorial = true }
                 )
             }
-        }
 
-        // ── Card de filtros ───────────────────────────────────────────────────
-        item {
-            FiltrosCard(
-                uiState = uiState,
-                onAnioSelected = onAnioSelected,
-                onMesSelected = onMesSelected,
-                onPeriodoSelected = onPeriodoSelected,
-                onProyectoSelected = onProyectoSelected,
-            )
-        }
+            if (uiState.muestras.isNotEmpty()) {
+                item { CongTableHeader(uiState.modoSeleccion) }
 
-        // ── Conteo + botones ──────────────────────────────────────────────────
-        item {
-            AnimatedVisibility(
-                visible = uiState.filtroCompleto,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                AccionesRow(
-                    muestras = uiState.muestras,
-                    pendientes = uiState.pendientesEnvio,
-                    isSending = uiState.isSending,
-                    onEnviar = onEnviar,
-                    onVerMapa = { /* TODO: navegar a pantalla de mapa */ },
-                    onVerUltimaFecha = { showUltimaFecha = true },
-                )
-            }
-        }
-
-        // ── Separador ─────────────────────────────────────────────────────────
-        if (uiState.muestras.isNotEmpty()) {
-            item {
-                CongTableHeader()
-            }
-        }
-
-        // ── Lista de conglomerados ────────────────────────────────────────────
-        if (uiState.isLoadingMuestras) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-        } else if (uiState.filtroCompleto && uiState.muestras.isEmpty()) {
-            item {
-                EmptyState(mensaje = "No hay conglomerados para este periodo.")
-            }
-        } else {
-            itemsIndexed(
-                items = uiState.muestras,
-                key = { _, item -> item.id },
-            ) { index, muestra ->
-                CongRow(muestra = muestra, index = index)
-                if (index < uiState.muestras.lastIndex) {
-                    HorizontalDivider(
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                itemsIndexed(uiState.muestras, key = { _, m -> m.id }) { index, muestra ->
+                    CongRow(
+                        muestra = muestra,
+                        index = index,
+                        modoSeleccion = uiState.modoSeleccion,
+                        isSeleccionado = muestra.id in uiState.seleccionados,
+                        isSending = uiState.isSending,
+                        onToggle = { actions.toggleSeleccion(muestra.id) },
+                        onEnviarUna = { actions.onEnviarTodas(false) /* Ajustar a onEnviarUna si existe */ },
+                        onClickFila = {
+                            if (uiState.modoSeleccion) actions.toggleSeleccion(muestra.id)
+                            else onNavigate(muestra.id)
+                        }
                     )
                 }
+            } else if (!uiState.isLoadingMuestras) {
+                item { EmptyStateComponent() }
             }
         }
 
-        item { Spacer(Modifier.height(32.dp)) }
+        if (uiState.isLoadingMuestras) {
+            item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        }
     }
 
-    // ── Dialog: última fecha de envío ─────────────────────────────────────────
-    if (showUltimaFecha) {
-        UltimaFechaDialog(
-            fecha = uiState.ultimaFechaEnvio,
-            onDismiss = { showUltimaFecha = false },
+    if (showHistorial) {
+        UltimaFechaDialog(fecha = uiState.ultimaFechaEnvio, onDismiss = { showHistorial = false })
+    }
+}
+
+@Composable
+fun EmptyStateComponent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Usamos un icono de "búsqueda sin resultados" con color atenuado
+        Icon(
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+        )
+        Text(
+            text = "No se encontraron conglomerados",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "Intenta cambiar los filtros de búsqueda.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  CARD DE FILTROS
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun FiltrosCard(
-    uiState: ConglomeradoUiState,
-    onAnioSelected: (Int) -> Unit,
-    onMesSelected: (Int) -> Unit,
-    onPeriodoSelected: (Int) -> Unit,
-    onProyectoSelected: (Int) -> Unit,
+fun UltimaFechaDialog(
+    fecha: String?,
+    onDismiss: () -> Unit
 ) {
-    val mesNombre = { m: Int ->
-        listOf("", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
-            .getOrElse(m) { "$m" }
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(0.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                "Filtrar por periodo",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            // Fila 1: Año y Mes
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FiltroCombo(
-                    label = "Año",
-                    opciones = uiState.anios,
-                    seleccion = uiState.anioSel?.toString(),
-                    enabled = uiState.anios.isNotEmpty(),
-                    modifier = Modifier.weight(1f),
-                    display = { it.toString() },
-                    onSelect = onAnioSelected,
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(Icons.Default.History, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        },
+        title = {
+            Text(text = "Historial de Sincronización", style = MaterialTheme.typography.titleMedium)
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Último envío registrado:",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                FiltroCombo(
-                    label = "Mes",
-                    opciones = uiState.meses,
-                    seleccion = uiState.mesSel?.let { mesNombre(it) },
-                    enabled = uiState.meses.isNotEmpty(),
-                    modifier = Modifier.weight(1f),
-                    display = mesNombre,
-                    onSelect = onMesSelected,
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = fecha ?: "No hay envíos previos",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (fecha != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        },
+        shape = RoundedCornerShape(24.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
+}
 
-            // Fila 2: Periodo y Proyecto
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FiltroCombo(
-                    label = "Periodo",
-                    opciones = uiState.periodos,
-                    seleccion = uiState.periodoSel?.let { "P$it" },
-                    enabled = uiState.periodos.isNotEmpty(),
-                    modifier = Modifier.weight(1f),
-                    display = { "P$it" },
-                    onSelect = onPeriodoSelected,
-                )
-                FiltroCombo(
-                    label = "Proyecto",
-                    opciones = uiState.proyectos,
-                    seleccion = uiState.proyectoSel?.toString(),
-                    enabled = uiState.proyectos.isNotEmpty(),
-                    modifier = Modifier.weight(1f),
-                    display = { it.toString() },
-                    onSelect = onProyectoSelected,
-                )
+@Composable
+fun FiltrosSeccion(
+    uiState: ConglomeradoUiState,
+    actions: ConglomeradoActions,
+    userId: String
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Periodo de trabajo",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Fila 1: Año y Mes
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FiltroCombo(
+                        label = "Año",
+                        opciones = uiState.anios,
+                        seleccion = uiState.anioSel?.toString(),
+                        enabled = uiState.anios.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        display = { it.toString() },
+                        onSelect = { actions.onAnioSelected(userId, it) }
+                    )
+                    FiltroCombo(
+                        label = "Mes",
+                        opciones = uiState.meses,
+                        seleccion = uiState.mesSel?.let { obtenerNombreMes(it) },
+                        enabled = uiState.meses.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        display = { obtenerNombreMes(it) },
+                        onSelect = { actions.onMesSelected(userId, it) }
+                    )
+                }
+
+                // Fila 2: Periodo y Proyecto
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FiltroCombo(
+                        label = "Periodo",
+                        opciones = uiState.periodos,
+                        seleccion = uiState.periodoSel?.let { "P$it" },
+                        enabled = uiState.periodos.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        display = { "P$it" },
+                        onSelect = { actions.onPeriodoSelected(userId, it) }
+                    )
+                    FiltroCombo(
+                        label = "Proyecto",
+                        opciones = uiState.proyectos,
+                        seleccion = uiState.proyectoSel?.toString(),
+                        enabled = uiState.proyectos.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        display = { it.toString() },
+                        onSelect = { actions.onProyectoSelected(userId, it) }
+                    )
+                }
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  COMBO GENÉRICO
-// ─────────────────────────────────────────────────────────────────────────────
+// Función auxiliar para nombres de meses
+private fun obtenerNombreMes(mes: Int): String {
+    return listOf("", "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
+        .getOrElse(mes) { mes.toString() }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> FiltroCombo(
+fun <T> FiltroCombo(
     label: String,
     opciones: List<T>,
     seleccion: String?,
     enabled: Boolean,
     modifier: Modifier = Modifier,
     display: (T) -> String,
-    onSelect: (T) -> Unit,
+    onSelect: (T) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
+        //onExpandedChange = { if (enabled) expanded = it },
         onExpandedChange = { if (enabled) expanded = !expanded },
-        modifier = modifier,
+        modifier = modifier
     ) {
         OutlinedTextField(
             value = seleccion ?: "",
             onValueChange = {},
             readOnly = true,
-            enabled = enabled,
             label = { Text(label, fontSize = 12.sp) },
-            placeholder = { Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            ),
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodySmall,
+            shape = RoundedCornerShape(12.dp)
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false }
         ) {
             opciones.forEach { opcion ->
                 DropdownMenuItem(
-                    text = { Text(display(opcion), style = MaterialTheme.typography.bodySmall) },
-                    onClick = {
-                        onSelect(opcion)
-                        expanded = false
-                    },
+                    text    = { Text(display(opcion), style = MaterialTheme.typography.bodySmall) },
+                    onClick = { onSelect(opcion); expanded = false },
                 )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  FILA DE ACCIONES (3 botones)
-// ─────────────────────────────────────────────────────────────────────────────
 
+/**/
 @Composable
-private fun AccionesRow(
-    muestras: List<MuestraConglomeradoEntity>,
-    pendientes: Int,
-    isSending: Boolean,
-    onEnviar: () -> Unit,
-    onVerMapa: () -> Unit,
-    onVerUltimaFecha: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-        // Resumen
-        if (muestras.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "${muestras.size} conglomerado${if (muestras.size != 1) "s" else ""}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (pendientes > 0) {
-                    Text(
-                        "$pendientes pendiente${if (pendientes != 1) "s" else ""}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFF59E0B),
-                        fontWeight = FontWeight.Medium,
-                    )
-                } else {
-                    Text(
-                        "Todo al día ✓",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF22C55E),
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
-        }
-
-        // Botones
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            // Botón 1: Enviar
-            Button(
-                onClick = onEnviar,
-                enabled = !isSending && pendientes > 0,
-                modifier = Modifier.weight(1f).height(42.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-                contentPadding = PaddingValues(horizontal = 8.dp),
-            ) {
-                AnimatedContent(targetState = isSending, label = "send_btn") { sending ->
-                    if (sending) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Icon(Icons.Default.CloudUpload, null, Modifier.size(15.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Enviar", fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
-
-            // Botón 2: Ver en mapa
-            OutlinedButton(
-                onClick = onVerMapa,
-                enabled = muestras.isNotEmpty(),
-                modifier = Modifier.weight(1f).height(42.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp),
-            ) {
-                Icon(Icons.Default.Map, null, Modifier.size(15.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Ver mapa", fontSize = 12.sp)
-            }
-
-            // Botón 3: Última fecha
-            FilledTonalButton(
-                onClick = onVerUltimaFecha,
-                enabled = muestras.isNotEmpty(),
-                modifier = Modifier.weight(1f).height(42.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp),
-            ) {
-                Icon(Icons.Default.History, null, Modifier.size(15.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Último env.", fontSize = 11.sp)
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  TABLA DE CONGLOMERADOS
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun CongTableHeader() {
+private fun CongTableHeader(modoSeleccion: Boolean) {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.Bold
     )
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(horizontal = 12.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("ID Cong.",     Modifier.width(80.dp),             style = style)
-        Text("Cong.",        Modifier.weight(1f),               style = style)
-        Text("Ubigeo",       Modifier.width(120.dp),            style = style)
-        Text("Estado",       Modifier.width(72.dp),             style = style)
+        if (modoSeleccion) Spacer(Modifier.width(36.dp))
+        Text("ID", Modifier.weight(1f), style = style)
+        Text("CONGLOMERADO", Modifier.weight(2.5f), style = style)
+        Text("UBIGEO", Modifier.weight(2f), style = style)
+        Text("ESTADO", Modifier.weight(1.2f), style = style, textAlign = TextAlign.Center)
+        if (!modoSeleccion) Spacer(Modifier.width(40.dp))
     }
 }
 
 @Composable
-private fun CongRow(muestra: MuestraConglomeradoEntity, index: Int) {
-    val bg = if (index % 2 == 0) Color.Transparent
-    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+private fun CongRow(
+    muestra: MuestraConglomeradoEntity,
+    index: Int,
+    modoSeleccion: Boolean,
+    isSeleccionado: Boolean,
+    isSending: Boolean,
+    onToggle: () -> Unit,
+    onEnviarUna: () -> Unit,
+    onClickFila: () -> Unit
+) {
+    val backgroundColor = when {
+        isSeleccionado -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        index % 2 != 0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+        else -> Color.Transparent
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(bg)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(backgroundColor)
+            .clickable { onClickFila() }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // ID Conglomerado
-        Text(
-            muestra.idcong,
-            modifier = Modifier.width(80.dp),
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        // Nombre conglomerado
-        Column(Modifier.weight(1f)) {
-            Text(
-                muestra.conglomerado,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
-            Text(
-                muestra.odeienapres,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (modoSeleccion) {
+            Checkbox(checked = isSeleccionado, onCheckedChange = { onToggle() }, modifier = Modifier.size(36.dp))
         }
 
-        // Ubigeo
-        Column(Modifier.width(120.dp)) {
-            Text(
-                muestra.departamento,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                "${muestra.provincia} / ${muestra.distrito}",
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-            )
+        Text(muestra.idcong, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+
+        Column(Modifier.weight(2.5f)) {
+            Text(muestra.conglomerado, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(muestra.odeienapres, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
-        // Estado pill
-        Surface(
-            modifier = Modifier.width(72.dp),
-            color = if (muestra.sincronizado) Color(0xFFDCFCE7) else Color(0xFFFEF3C7),
-            shape = RoundedCornerShape(999.dp),
-        ) {
-            Text(
-                text = if (muestra.sincronizado) "Enviado" else "Pendiente",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (muestra.sincronizado) Color(0xFF166534) else Color(0xFF92400E),
-            )
+        Column(Modifier.weight(2f)) {
+            Text(muestra.departamento, style = MaterialTheme.typography.labelSmall)
+            Text("${muestra.provincia}/${muestra.distrito}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
         }
-    }
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  EMPTY STATE
-// ─────────────────────────────────────────────────────────────────────────────
+        // Estado con el estilo de "Pill" original
+        Box(modifier = Modifier.weight(1.2f), contentAlignment = Alignment.Center) {
+            val (colorBg, colorTxt, label) = if (muestra.sincronizado) {
+                Triple(Color(0xFFDCFCE7), Color(0xFF166534), "Enviado")
+            } else {
+                Triple(Color(0xFFFEF3C7), Color(0xFF92400E), "Pendiente")
+            }
+            Surface(color = colorBg, shape = CircleShape) {
+                Text(label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 9.sp, fontWeight = FontWeight.Bold, color = colorTxt)
+            }
+        }
 
-@Composable
-private fun EmptyState(mensaje: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(
-            Icons.Default.SearchOff,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.size(40.dp),
-        )
-        Text(
-            mensaje,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  DIALOG: ÚLTIMA FECHA DE ENVÍO
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun UltimaFechaDialog(fecha: String?, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 4.dp,
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    Icons.Default.History,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp),
-                )
-                Text(
-                    "Último envío",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = fecha ?: "Sin registros de envío aún",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (fecha != null) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (fecha != null) FontWeight.Medium else FontWeight.Normal,
-                )
-                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text("Cerrar")
+        if (!modoSeleccion) {
+            Box(Modifier.width(40.dp), contentAlignment = Alignment.Center) {
+                if (!muestra.sincronizado) {
+                    IconButton(onClick = onEnviarUna, enabled = !isSending, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.CloudUpload, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun AccionesSection(
+    uiState: ConglomeradoUiState,
+    actions: ConglomeradoActions,
+    onVerMapa: () -> Unit,
+    onVerHistorial: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Barra de conteo
+        Row(
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(0.4f)).padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("${uiState.muestras.size} unidades", style = MaterialTheme.typography.labelMedium)
+            Text(
+                if (uiState.pendientesTotal > 0) "${uiState.pendientesTotal} pendientes" else "Al día ✓",
+                color = if (uiState.pendientesTotal > 0) Color(0xFFF59E0B) else Color(0xFF22C55E),
+                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold
+            )
+        }
+
+        // Botonera principal
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.height(42.dp)) {
+            // Botón Enviar Dinámico
+            Button(
+                onClick = {
+                    val online = hasInternet(context)
+                    if (uiState.modoSeleccion) actions.onEnviarSeleccionadas(online) else actions.onEnviarTodas(online)
+                },
+                modifier = Modifier.weight(1.5f),
+                enabled = !uiState.isSending && (if(uiState.modoSeleccion) uiState.seleccionados.isNotEmpty() else uiState.pendientesTotal > 0),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (uiState.isSending) CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                else {
+                    Icon(Icons.Default.CloudUpload, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (uiState.modoSeleccion) "Enviar (${uiState.seleccionados.size})" else "Enviar Todas", fontSize = 12.sp)
+                }
+            }
+
+            // Toggle Selección
+            FilledTonalButton(
+                onClick = { actions.toggleModoSeleccion() },
+                modifier = Modifier.weight(1.2f),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = if (uiState.modoSeleccion) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Icon(if (uiState.modoSeleccion) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank, null, Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(if (uiState.modoSeleccion) "Cancelar" else "Seleccionar", fontSize = 11.sp)
+            }
+
+            // Mapa e Historial (Iconos rápidos)
+            OutlinedIconButton(onClick = onVerMapa, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(42.dp)) {
+                Icon(Icons.Default.Map, null, Modifier.size(18.dp))
+            }
+            OutlinedIconButton(onClick = onVerHistorial, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(42.dp)) {
+                Icon(Icons.Default.History, null, Modifier.size(18.dp))
+            }
+        }
+
+        // Acciones masivas (solo en modo selección)
+        AnimatedVisibility(visible = uiState.modoSeleccion) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { actions.seleccionarTodosPendientes() }) { Text("Todo", fontSize = 12.sp) }
+                TextButton(onClick = { actions.deseleccionarTodos() }) { Text("Ninguno", fontSize = 12.sp) }
             }
         }
     }

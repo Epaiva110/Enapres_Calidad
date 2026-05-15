@@ -68,7 +68,7 @@ fun MainContent(
                 "settings"   -> SettingsScreen()
                 // Sin parámetros — el ViewModel lo maneja todo internamente
                 "CargaMarco" -> UpdateScreen()
-                "verificacionConglomerado" -> ConglomeradoScreen()
+                "verificacionConglomerado" -> ConglomeradoScreen({})
                 else         -> MaintanceScren(Routes.Login)
             }
         }

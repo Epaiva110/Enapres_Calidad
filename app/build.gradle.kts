@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.benchmark.common)
+    implementation(libs.androidx.ui.text)
     debugImplementation(libs.androidx.ui.tooling)
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
 

@@ -498,21 +498,37 @@ fun CargaSection(
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
-                    Box(Modifier.horizontalScroll(rememberScrollState())) {
-                        Column {
-                            CargaTableHeader()
-                            cargas.forEachIndexed { index, carga ->
-                                CargaTableRow(
-                                    carga = carga,
-                                    onSyncItem = onSyncItem,
-                                    isSyncItem = isSyncItem)
-                                if (index < cargas.lastIndex) {
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outlineVariant,
-                                        modifier = Modifier.padding(horizontal = 12.dp),
-                                    )
-                                }
+//                    Box(Modifier.horizontalScroll(rememberScrollState())) {
+//                        Column {
+//                            CargaTableHeader()
+//                            cargas.forEachIndexed { index, carga ->
+//                                CargaTableRow(
+//                                    carga = carga,
+//                                    onSyncItem = onSyncItem,
+//                                    isSyncItem = isSyncItem)
+//                                if (index < cargas.lastIndex) {
+//                                    HorizontalDivider(
+//                                        thickness = 0.5.dp,
+//                                        color = MaterialTheme.colorScheme.outlineVariant,
+//                                        modifier = Modifier.padding(horizontal = 12.dp),
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+                    Column {
+                        CargaTableHeader()
+                        cargas.forEachIndexed { index, carga ->
+                            CargaTableRow(
+                                carga = carga,
+                                onSyncItem = onSyncItem,
+                                isSyncItem = isSyncItem)
+                            if (index < cargas.lastIndex) {
+                                HorizontalDivider(
+                                    thickness = 0.5.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                )
                             }
                         }
                     }
@@ -539,11 +555,16 @@ fun CargaTableRow(
         label = "progress_${carga.id}",
     )
 
+//    Row(
+//        modifier = modifier.padding(horizontal = 0.dp, vertical = 10.dp),
+//        verticalAlignment = Alignment.CenterVertically,
+//    ) {
     Row(
-        modifier = modifier.padding(horizontal = 0.dp, vertical = 10.dp),
+        modifier = modifier
+            .fillMaxWidth()                          // <-- agregar fillMaxWidth
+            .padding(horizontal = 0.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-
         // Col 5: Botón acción
         Box(Modifier.width(COL_ACTION)
             , contentAlignment = Alignment.Center) {
@@ -573,7 +594,10 @@ fun CargaTableRow(
         }
 
         // Col 1: Orden + Periodo
-        Column(Modifier.width(COL_ID)) {
+        Column(Modifier
+            .weight(COL_ID)
+            //.width(COL_ID)
+        ) {
             Text(
                 "#${carga.orden} · ${carga.anio}",
                 style = MaterialTheme.typography.bodySmall,
@@ -588,7 +612,11 @@ fun CargaTableRow(
         }
 
         // Col 2: Barra de progreso
-        Column(Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp)) {
+        Column(Modifier
+            .weight(COL_PROGRESS)
+            //.width(COL_PROGRESS)
+            .padding(horizontal = 8.dp)
+        ) {
             Text(
                 "${carga.descargas} de ${carga.meta}",
                 fontSize = 10.sp,
@@ -608,7 +636,10 @@ fun CargaTableRow(
         }
 
         // Col 3: Estado
-        Box(Modifier.width(COL_STATUS)) {
+        Box(Modifier
+            .weight(COL_STATUS)
+            //.width(COL_STATUS)
+        ) {
             StatusPill(isReady = isReady)
         }
 
@@ -616,7 +647,10 @@ fun CargaTableRow(
         Text(
             text = carga.fechasincronizacionAlter?.let { formatDate(it) } ?: "--/--/--",
             //text = carga.fecha_sincronizacion?: 0,
-            modifier = Modifier.width(COL_DATE),
+            modifier = Modifier
+                .weight(COL_DATE)
+                //.width(COL_DATE)
+                    ,
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -726,20 +760,32 @@ internal fun CargaTableHeader() {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("",         Modifier.width(COL_ACTION),                      style = style)
-        Text("ID / Periodo",   Modifier.width(COL_ID),                          style = style)
-        Text("Progreso",       Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
-        Text("Estado",         Modifier.width(COL_STATUS),                      style = style)
-        Text("Últ. act.",      Modifier.width(COL_DATE),                        style = style)
+//        Text("ID / Periodo",   Modifier.width(COL_ID),                          style = style)
+//        Text("Progreso",       Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
+//        Text("Estado",         Modifier.width(COL_STATUS),                      style = style)
+//        Text("Últ. act.",      Modifier.width(COL_DATE),                        style = style)
+        Text("ID / Periodo",   Modifier.weight(COL_ID),                          style = style)
+        Text("Progreso",       Modifier.weight(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
+        Text("Estado",         Modifier.weight(COL_STATUS),                      style = style)
+        Text("Últ. act.",      Modifier.weight(COL_DATE),                        style = style)
+
 
     }
 }
 
 // ── Anchos de columna compartidos ─────────────────────────────────────────────
-private val COL_ID       = 90.dp
-private val COL_PROGRESS = 160.dp
-private val COL_STATUS   = 80.dp
-private val COL_DATE     = 80.dp
+//private val COL_ID       = 90.dp
+//private val COL_PROGRESS = 160.dp
+//private val COL_STATUS   = 80.dp
+//private val COL_DATE     = 80.dp
 private val COL_ACTION     = 35.dp
+
+private val COL_ID       = 1.4f
+private val COL_PROGRESS = 2.5f
+private val COL_STATUS   = 1.5f
+private val COL_DATE     = 1.4f
+
+
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 object UpdateTokens {
