@@ -9,6 +9,7 @@ import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.surveys.SurveyConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.database.AppDataBase
 import dagger.Module
 import dagger.Provides
@@ -65,5 +66,8 @@ object AppModule {
 
     @Provides
     fun provideMarcoTrabajoDao(db: AppDataBase): MarcoTrabajoDao = db.marcoTrabajoDao()
+
+    @Provides
+    fun provideSurveyConglomeradoDao(db: AppDataBase): SurveyConglomeradoDao = db.surveyconglomeradoDao()
 
 }

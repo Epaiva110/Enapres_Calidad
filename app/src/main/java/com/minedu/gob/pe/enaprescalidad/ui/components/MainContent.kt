@@ -18,6 +18,8 @@
 
 package com.minedu.gob.pe.enaprescalidad.ui.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -101,12 +103,24 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.verification.co
 
 
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.minedu.gob.pe.enaprescalidad.surveys.ui.SurveyScreen
 
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun MainContent(
     selectedItemId: String,
     modifier: Modifier = Modifier,
 ) {
+
+    val context = LocalContext.current
+
+    // Usamos remember para que no lea el archivo cada vez que se recompone la pantalla
+    val jsonFromAssets = remember {
+        context.assets.open("ejemplo_json.json").bufferedReader().use { it.readText() }
+    }
+
     Box(modifier = modifier) {
         AnimatedContent(
             targetState = selectedItemId,
@@ -133,6 +147,8 @@ fun MainContent(
                             // TODO: navegar al cuestionario pasando muestraId
                         }
                     )
+                    NavIds.VIVIENDA -> SurveyScreen(101, jsonFromAssets, {})
+                    NavIds.REENTREVISTA -> MapScreen()
                     else          -> MaintanceScren(Routes.Login)
                 }
             }

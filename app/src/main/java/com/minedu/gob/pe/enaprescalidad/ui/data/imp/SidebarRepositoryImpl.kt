@@ -54,7 +54,7 @@ class SidebarRepositoryImpl @Inject constructor() : SidebarRepository {
                         titleMenu = "Verificación - Vivienda"
                     ),
                     SidebarItem(
-                        id = "verificacionReeentrevista",
+                        id = "verificacionReentrevista",
                         label = "Reeentrevista",
                         icon = Icons.Default.Quiz,
                         titleMenu = "Verificación - Reentrevista"
