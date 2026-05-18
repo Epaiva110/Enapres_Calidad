@@ -1,8 +1,11 @@
 package com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.verification.conglomerado
 
+import android.util.Log
+import androidx.compose.foundation.horizontalScroll
 import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
@@ -32,28 +35,42 @@ import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoViewModel
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import com.minedu.gob.pe.enaprescalidad.ui.components.NavIds
+import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreMes
+import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreProyecto
 import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoActions
 import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoUiState
+import java.util.Objects
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConglomeradoScreen(
+    star: Boolean,
     onNavigateCuestionario: (Int) -> Unit,
     viewModel: ConglomeradoViewModel = hiltViewModel(),
     viewModelLogin: LoginViewModel = hiltViewModel()
 ) {
+
+    //var change by remember { mutableStateOf(change) }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user by viewModelLogin.currentUser.collectAsStateWithLifecycle()
     val userId = remember(user) { user?.user ?: "" }
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
-    // Init: solo cuando cambia el userId (no en cada recomposición)
-    LaunchedEffect(userId) { if (userId.isNotBlank()) viewModel.init(userId) }
+    LaunchedEffect(userId) {
+        if (userId.isNotBlank()) {
+            viewModel.init(userId)
+        }
+    }
+
+    Log.d("ConglomeradoScreen2", star.toString())
 
     HandleUiEffects(uiState, snackbarHostState, viewModel)
 
@@ -61,7 +78,6 @@ fun ConglomeradoScreen(
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-
         ConglomeradoContent(
             uiState = uiState,
             actions = viewModel,
@@ -70,7 +86,6 @@ fun ConglomeradoScreen(
             modifier = Modifier.padding(padding)
         )
     }
-
 }
 
 @Composable
@@ -161,6 +176,7 @@ fun ConglomeradoContent(
     }
 }
 
+@Preview
 @Composable
 fun EmptyStateComponent() {
     Column(
@@ -242,69 +258,56 @@ fun FiltrosSeccion(
             modifier = Modifier.padding(horizontal = 4.dp)
         )
 
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            shape = RoundedCornerShape(20.dp)
+        // Se eliminó la Card vieja. Usamos una columna directa con el fondo nativo.
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Fila 1: Año y Mes
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FiltroCombo(
-                        label = "Año",
-                        opciones = uiState.anios,
-                        seleccion = uiState.anioSel?.toString(),
-                        enabled = uiState.anios.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                        display = { it.toString() },
-                        onSelect = { actions.onAnioSelected(userId, it) }
-                    )
-                    FiltroCombo(
-                        label = "Mes",
-                        opciones = uiState.meses,
-                        seleccion = uiState.mesSel?.let { obtenerNombreMes(it) },
-                        enabled = uiState.meses.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                        display = { obtenerNombreMes(it) },
-                        onSelect = { actions.onMesSelected(userId, it) }
-                    )
-                }
+            // Fila 1: Año y Mes
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FiltroCombo(
+                    label = "Año",
+                    opciones = uiState.anios,
+                    seleccion = uiState.anioSel?.toString(),
+                    enabled = uiState.anios.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    display = { it.toString() },
+                    onSelect = { actions.onAnioSelected(userId, it) }
+                )
+                FiltroCombo(
+                    label = "Mes",
+                    opciones = uiState.meses,
+                    seleccion = uiState.mesSel?.let { obtenerNombreMes(it) },
+                    enabled = uiState.anioSel !=null && uiState.meses.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    display = { obtenerNombreMes(it) },
+                    onSelect = { actions.onMesSelected(userId, it) }
+                )
+            }
 
-                // Fila 2: Periodo y Proyecto
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FiltroCombo(
-                        label = "Periodo",
-                        opciones = uiState.periodos,
-                        seleccion = uiState.periodoSel?.let { "P$it" },
-                        enabled = uiState.periodos.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                        display = { "P$it" },
-                        onSelect = { actions.onPeriodoSelected(userId, it) }
-                    )
-                    FiltroCombo(
-                        label = "Proyecto",
-                        opciones = uiState.proyectos,
-                        seleccion = uiState.proyectoSel?.toString(),
-                        enabled = uiState.proyectos.isNotEmpty(),
-                        modifier = Modifier.weight(1f),
-                        display = { it.toString() },
-                        onSelect = { actions.onProyectoSelected(userId, it) }
-                    )
-                }
+            // Fila 2: Periodo y Proyecto
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FiltroCombo(
+                    label = "Periodo",
+                    opciones = uiState.periodos,
+                    seleccion = uiState.periodoSel?.toString(),
+                    enabled = uiState.mesSel !=null && uiState.periodos.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    display = { it.toString() },
+                    onSelect = { actions.onPeriodoSelected(userId, it) }
+                )
+                FiltroCombo(
+                    label = "Proyecto",
+                    opciones = uiState.proyectos,
+                    seleccion = uiState.proyectoSel?.let{ obtenerNombreProyecto(it) },
+                    enabled = uiState.periodoSel !=null && uiState.proyectos.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    display = { obtenerNombreProyecto(it) },
+                    onSelect = { actions.onProyectoSelected(userId, it) }
+                )
             }
         }
     }
-}
-
-// Función auxiliar para nombres de meses
-private fun obtenerNombreMes(mes: Int): String {
-    return listOf("", "Ene", "Feb", "Mar", "Abr", "May", "Jun",
-        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
-        .getOrElse(mes) { mes.toString() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -323,7 +326,7 @@ fun <T> FiltroCombo(
     ExposedDropdownMenuBox(
         expanded = expanded,
         //onExpandedChange = { if (enabled) expanded = it },
-        onExpandedChange = { if (enabled) expanded = !expanded },
+        onExpandedChange = { if (enabled) {expanded = !expanded} },
         modifier = modifier
     ) {
         OutlinedTextField(
@@ -355,33 +358,37 @@ fun <T> FiltroCombo(
     }
 }
 
-
-/**/
 @Composable
 private fun CongTableHeader(modoSeleccion: Boolean) {
     val style = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Medium
     )
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            //.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 4.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (modoSeleccion) Spacer(Modifier.width(36.dp))
-        Text("ID", Modifier.weight(1f), style = style)
-        Text("CONGLOMERADO", Modifier.weight(2.5f), style = style)
-        Text("UBIGEO", Modifier.weight(2f), style = style)
-        Text("ESTADO", Modifier.weight(1.2f), style = style, textAlign = TextAlign.Center)
-        if (!modoSeleccion) Spacer(Modifier.width(40.dp))
+        if (modoSeleccion) Spacer(Modifier.width(COL_CHECK))
+        Text("Id", Modifier.weight(COL_ID), style = style)
+        Text("Conglomerado", Modifier.weight(COL_CONG), style = style)
+        Text("Estado", Modifier.weight(COL_STATUS), style = style)
+        if (!modoSeleccion) Spacer(Modifier.width(COL_ACTION))
     }
 }
 
+val COL_CHECK = 36.dp
+const val COL_ID = 1.0f
+const val COL_CONG = 2.5f
+const val COL_UBI = 2.0f
+const val COL_STATUS = 1.2f
+val COL_ACTION = 40.dp
+
 @Composable
-private fun CongRow(
+fun CongRow(
     muestra: MuestraConglomeradoEntity,
     index: Int,
     modoSeleccion: Boolean,
@@ -389,59 +396,210 @@ private fun CongRow(
     isSending: Boolean,
     onToggle: () -> Unit,
     onEnviarUna: () -> Unit,
-    onClickFila: () -> Unit
+    onClickFila: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = when {
-        isSeleccionado -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        index % 2 != 0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-        else -> Color.Transparent
-    }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(backgroundColor)
-            .clickable { onClickFila() }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val rowBackground by animateColorAsState(
+        targetValue = when {
+            isSeleccionado ->
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+
+            index % 2 != 0 ->
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f)
+
+            else ->
+                Color.Transparent
+        },
+        label = "row_background"
+    )
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = rowBackground,
     ) {
-        if (modoSeleccion) {
-            Checkbox(checked = isSeleccionado, onCheckedChange = { onToggle() }, modifier = Modifier.size(36.dp))
-        }
 
-        Text(muestra.idcong, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClickFila() }
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
 
-        Column(Modifier.weight(2.5f)) {
-            Text(muestra.conglomerado, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(muestra.odeienapres, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+            // =====================================
+            // CHECKBOX
+            // =====================================
 
-        Column(Modifier.weight(2f)) {
-            Text(muestra.departamento, style = MaterialTheme.typography.labelSmall)
-            Text("${muestra.provincia}/${muestra.distrito}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-        }
+            if (modoSeleccion) {
 
-        // Estado con el estilo de "Pill" original
-        Box(modifier = Modifier.weight(1.2f), contentAlignment = Alignment.Center) {
-            val (colorBg, colorTxt, label) = if (muestra.sincronizado) {
-                Triple(Color(0xFFDCFCE7), Color(0xFF166534), "Enviado")
-            } else {
-                Triple(Color(0xFFFEF3C7), Color(0xFF92400E), "Pendiente")
+                Box(
+                    modifier = Modifier.width(COL_CHECK),
+                    contentAlignment = Alignment.Center,
+                ) {
+
+                    Checkbox(
+                        checked = isSeleccionado,
+                        onCheckedChange = { onToggle() },
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
-            Surface(color = colorBg, shape = CircleShape) {
-                Text(label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 9.sp, fontWeight = FontWeight.Bold, color = colorTxt)
-            }
-        }
 
-        if (!modoSeleccion) {
-            Box(Modifier.width(40.dp), contentAlignment = Alignment.Center) {
-                if (!muestra.sincronizado) {
-                    IconButton(onClick = onEnviarUna, enabled = !isSending, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.CloudUpload, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            // =====================================
+            // ID
+            // =====================================
+
+            Column(
+                modifier = Modifier.weight(COL_ID)
+            ) {
+
+                Text(
+                    text = muestra.id.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+            }
+
+            // =====================================
+            // CONGLOMERADO
+            // =====================================
+
+            Column(
+                modifier = Modifier
+                    .weight(COL_CONG)
+                    //.padding(horizontal = 6.dp)
+            ) {
+
+                Text(
+                    text = muestra.conglomerado,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Spacer(Modifier.height(2.dp))
+
+                Text(
+                    text = muestra.odeienapres,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            // =====================================
+            // STATUS
+            // =====================================
+
+            Box(
+                modifier = Modifier.weight(COL_STATUS),
+                contentAlignment = Alignment.Center,
+            ) {
+
+                SyncStatusPill(
+                    sincronizado = muestra.sincronizado
+                )
+            }
+
+            // =====================================
+            // ACTION
+            // =====================================
+
+            if (!modoSeleccion) {
+
+                Box(
+                    modifier = Modifier.width(COL_ACTION),
+                    contentAlignment = Alignment.Center,
+                ) {
+
+                    when {
+
+                        isSending -> {
+
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+
+                        !muestra.sincronizado -> {
+
+                            IconButton(
+                                onClick = onEnviarUna,
+                                modifier = Modifier.size(32.dp),
+                            ) {
+
+                                Icon(
+                                    imageVector = Icons.Default.CloudUpload,
+                                    contentDescription = "Enviar",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+
+                        else -> {
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.outline,
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SyncStatusPill(
+    sincronizado: Boolean,
+    modifier: Modifier = Modifier,
+) {
+
+    val backgroundColor =
+        if (sincronizado)
+            Color(0xFFDCFCE7)
+        else
+            Color(0xFFFEF3C7)
+
+    val contentColor =
+        if (sincronizado)
+            Color(0xFF166534)
+        else
+            Color(0xFF92400E)
+
+    val label =
+        if (sincronizado)
+            "Enviado"
+        else
+            "Pendiente"
+
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = backgroundColor,
+    ) {
+
+        Text(
+            text = label,
+            modifier = Modifier.padding(
+                horizontal = 10.dp,
+                vertical = 4.dp
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = contentColor,
+        )
     }
 }
 

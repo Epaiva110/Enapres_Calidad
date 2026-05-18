@@ -47,6 +47,61 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.verification.co
  *  2. Crea su Composable en ui/features/
  *  3. Agrega el `else if` aquí.
  */
+//@Composable
+//fun MainContent(
+//    selectedItemId: String,
+//    modifier: Modifier = Modifier,
+//) {
+//    Box(modifier = modifier) {
+//        AnimatedContent(
+//            targetState = selectedItemId,
+//            label = "main_content_transition",
+//            transitionSpec = {
+//                (fadeIn(tween(220, delayMillis = 60)) +
+//                        scaleIn(initialScale = 0.96f, animationSpec = tween(220, delayMillis = 60)))
+//                    .togetherWith(fadeOut(tween(90)))
+//            },
+//        ) { itemId ->
+//            when (itemId) {
+//                "home"       -> HomeScreen()
+//                "analytics"  -> AnalyticsScreen()
+//                "settings"   -> SettingsScreen()
+//                // Sin parámetros — el ViewModel lo maneja todo internamente
+//                "CargaMarco" -> UpdateScreen()
+//                "verificacionConglomerado" -> ConglomeradoScreen({})
+//                else         -> MaintanceScren(Routes.Login)
+//            }
+//        }
+//    }
+//}
+//
+//sealed class DrawerScreen(val id: String) {
+//    object Home       : DrawerScreen("home")
+//    object Analytics  : DrawerScreen("analytics")
+//    object Settings   : DrawerScreen("settings")
+//    object CargaMarco : DrawerScreen("CargaMarco")
+//}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MainContent.kt  — versión corregida
+//
+//  CAMBIO CLAVE: agregar key(itemId) { ... } dentro del AnimatedContent.
+//
+//  Qué hace key():
+//   - Cuando itemId cambia (usuario cambia de menú), Compose destruye y recrea
+//     el subárbol completo, incluyendo los hiltViewModel() de cada pantalla.
+//   - Cuando solo rota la pantalla, itemId NO cambia → el subárbol se conserva
+//     → el ViewModel sobrevive con su SavedStateHandle intacto.
+//
+//  Resultado:
+//   ✓ Cambiar de menú  → ViewModel se destruye → filtros se reinician
+//   ✓ Rotar pantalla   → ViewModel sobrevive   → filtros se mantienen
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+import androidx.compose.runtime.key
+
 @Composable
 fun MainContent(
     selectedItemId: String,
@@ -62,22 +117,40 @@ fun MainContent(
                     .togetherWith(fadeOut(tween(90)))
             },
         ) { itemId ->
-            when (itemId) {
-                "home"       -> HomeScreen()
-                "analytics"  -> AnalyticsScreen()
-                "settings"   -> SettingsScreen()
-                // Sin parámetros — el ViewModel lo maneja todo internamente
-                "CargaMarco" -> UpdateScreen()
-                "verificacionConglomerado" -> ConglomeradoScreen({})
-                else         -> MaintanceScren(Routes.Login)
+
+
+            // key() garantiza que cada pantalla tenga su propia instancia de ViewModel.
+            // Al cambiar itemId, el ViewModel anterior se destruye (onCleared) y se crea uno nuevo.
+            // Al rotar, itemId no cambia → el ViewModel sobrevive con SavedStateHandle.
+            key(itemId) {
+                when (itemId) {
+                    NavIds.HOME -> HomeScreen()
+                    NavIds.ANALYTICS   -> AnalyticsScreen()
+                    NavIds.SETTINGS    -> SettingsScreen()
+                    NavIds.CARGA_MARCO -> UpdateScreen()
+                    NavIds.CONGLOMERADO -> ConglomeradoScreen(
+                        star = true,
+                        onNavigateCuestionario = { muestraId ->
+                            // TODO: navegar al cuestionario pasando muestraId
+                        }
+                    )
+                    else          -> MaintanceScren(Routes.Login)
+                }
             }
         }
     }
 }
 
-sealed class DrawerScreen(val id: String) {
-    object Home       : DrawerScreen("home")
-    object Analytics  : DrawerScreen("analytics")
-    object Settings   : DrawerScreen("settings")
-    object CargaMarco : DrawerScreen("CargaMarco")
+// Con key(), el onCleared() del ViewModel se llama automáticamente al cambiar de menú,
+// así que el savedState.remove() que tienes en onCleared() funciona perfectamente
+// sin necesidad de llamar a resetModoSeleccion() desde la Screen.
+
+object NavIds {
+    const val HOME                      = "home"
+    const val ANALYTICS                 = "analytics"
+    const val SETTINGS                  = "settings"
+    const val CARGA_MARCO               = "CargaMarco"
+    const val CONGLOMERADO              = "verificacionConglomerado"
+    const val VIVIENDA                  = "verificacionVivienda"
+    const val REENTREVISTA              = "verificacionReentrevista"
 }

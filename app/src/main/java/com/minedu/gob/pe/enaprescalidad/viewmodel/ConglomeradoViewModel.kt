@@ -14,194 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  UI STATE
-// ─────────────────────────────────────────────────────────────────────────────
-
-//data class ConglomeradoUiState(
-//
-//    // ── Opciones de los combos (se cargan en cascada) ─────────────────────────
-//    val anios: List<Int>      = emptyList(),
-//    val meses: List<Int>      = emptyList(),
-//    val periodos: List<Int>   = emptyList(),
-//    val proyectos: List<Int>  = emptyList(),
-//
-//    // ── Selecciones actuales ──────────────────────────────────────────────────
-//    val anioSel: Int?     = null,
-//    val mesSel: Int?      = null,
-//    val periodoSel: Int?  = null,
-//    val proyectoSel: Int? = null,
-//
-//    // ── Lista resultante ──────────────────────────────────────────────────────
-//    val muestras: List<MuestraConglomeradoEntity> = emptyList(),
-//
-//    // ── Estados de carga y error ──────────────────────────────────────────────
-//    val isLoadingCombos: Boolean = false,
-//    val isLoadingMuestras: Boolean = false,
-//    val isSending: Boolean = false,
-//    val error: String? = null,
-//    val sendSuccess: Boolean = false,
-//    val lastEnvio: String? = null,          // fecha del último envío exitoso
-//) {
-//    /** true si todos los combos están seleccionados */
-//    val filtroCompleto: Boolean
-//        get() = anioSel != null && mesSel != null && periodoSel != null && proyectoSel != null
-//
-//    /** Muestras que aún no han sido enviadas */
-//    val pendientesEnvio: Int
-//        get() = muestras.count { !it.sincronizado }
-//
-//    /** Última fecha de sincronización entre todas las muestras de la lista */
-//    val ultimaFechaEnvio: String?
-//        get() = muestras
-//            .mapNotNull { it.fecha_sincronizacion }
-//            .maxOrNull()
-//}
-//
-//// ─────────────────────────────────────────────────────────────────────────────
-////  VIEW MODEL
-//// ─────────────────────────────────────────────────────────────────────────────
-//
-//@HiltViewModel
-//class ConglomeradoViewModel @Inject constructor(
-//    private val repo: ConglomeradoListRepository,
-//) : ViewModel() {
-//
-//    private val _uiState = MutableStateFlow(ConglomeradoUiState())
-//    val uiState: StateFlow<ConglomeradoUiState> = _uiState.asStateFlow()
-//
-//    // ── Inicialización ────────────────────────────────────────────────────────
-//
-//    /**
-//     * Llamar UNA vez desde LaunchedEffect cuando el userId esté disponible.
-//     * Carga los años disponibles y resetea el resto de combos.
-//     */
-//    fun init(userId: String) {
-//        viewModelScope.launch {
-//            _uiState.update { it.copy(isLoadingCombos = true, error = null) }
-//            val anios = repo.getAniosDisponibles(userId)
-//            _uiState.update {
-//                it.copy(
-//                    isLoadingCombos = false,
-//                    anios = anios,
-//                    // Pre-selecciona el primer año si solo hay uno
-//                    anioSel = if (anios.size == 1) anios.first() else null,
-//                    meses = emptyList(), mesSel = null,
-//                    periodos = emptyList(), periodoSel = null,
-//                    proyectos = emptyList(), proyectoSel = null,
-//                    muestras = emptyList(),
-//                )
-//            }
-//            // Si pre-seleccionamos año, cargamos los meses automáticamente
-//            _uiState.value.anioSel?.let { onAnioSelected(userId, it) }
-//        }
-//    }
-//
-//    // ── Selección en cascada ──────────────────────────────────────────────────
-//
-//    fun onAnioSelected(userId: String, anio: Int) {
-//        viewModelScope.launch {
-//            _uiState.update {
-//                it.copy(
-//                    anioSel = anio,
-//                    meses = emptyList(), mesSel = null,
-//                    periodos = emptyList(), periodoSel = null,
-//                    proyectos = emptyList(), proyectoSel = null,
-//                    muestras = emptyList(),
-//                )
-//            }
-//            val meses = repo.getMesesDisponibles(userId, anio)
-//            _uiState.update { it.copy(meses = meses) }
-//        }
-//    }
-//
-//    fun onMesSelected(userId: String, mes: Int) {
-//        val anio = _uiState.value.anioSel ?: return
-//        viewModelScope.launch {
-//            _uiState.update {
-//                it.copy(
-//                    mesSel = mes,
-//                    periodos = emptyList(), periodoSel = null,
-//                    proyectos = emptyList(), proyectoSel = null,
-//                    muestras = emptyList(),
-//                )
-//            }
-//            val periodos = repo.getPeriodosDisponibles(userId, anio, mes)
-//            _uiState.update { it.copy(periodos = periodos) }
-//        }
-//    }
-//
-//    fun onPeriodoSelected(userId: String, periodo: Int) {
-//        val anio = _uiState.value.anioSel ?: return
-//        val mes  = _uiState.value.mesSel  ?: return
-//        viewModelScope.launch {
-//            _uiState.update {
-//                it.copy(
-//                    periodoSel = periodo,
-//                    proyectos = emptyList(), proyectoSel = null,
-//                    muestras = emptyList(),
-//                )
-//            }
-//            val proyectos = repo.getProyectosDisponibles(userId, anio, mes, periodo)
-//            _uiState.update { it.copy(proyectos = proyectos) }
-//        }
-//    }
-//
-//    fun onProyectoSelected(userId: String, proyecto: Int) {
-//        val anio    = _uiState.value.anioSel    ?: return
-//        val mes     = _uiState.value.mesSel     ?: return
-//        val periodo = _uiState.value.periodoSel ?: return
-//
-//        _uiState.update { it.copy(proyectoSel = proyecto, muestras = emptyList()) }
-//
-//        // Observa de forma reactiva: cualquier cambio en Room actualiza la lista
-//        viewModelScope.launch {
-//            repo.getMuestraFiltrada(userId, anio, mes, periodo, proyecto)
-//                .catch { e -> _uiState.update { it.copy(error = e.message) } }
-//                .collect { lista ->
-//                    _uiState.update { it.copy(muestras = lista, isLoadingMuestras = false) }
-//                }
-//        }
-//    }
-//
-//    // ── Acciones de los botones ───────────────────────────────────────────────
-//
-//    /**
-//     * Enviar la data al servidor.
-//     * Aquí conectas tu repositorio remoto; por ahora es un placeholder.
-//     */
-//    fun onEnviar(userId: String, isOnline: Boolean) {
-//        if (_uiState.value.isSending) return
-//        viewModelScope.launch {
-//            _uiState.update { it.copy(isSending = true, error = null) }
-//
-//            val result = repo.enviarPendientes(
-//                muestras = _uiState.value.muestras,
-//                isOnline = isOnline,
-//            )
-//
-//            _uiState.update { state ->
-//                when (result) {
-//                    is EnvioResult.Success ->
-//                        state.copy(isSending = false, sendSuccess = true)
-//                    is EnvioResult.Parcial ->
-//                        state.copy(isSending = false, sendSuccess = true,
-//                            error = "${result.fallidos} muestra(s) no se pudieron enviar")
-//                    is EnvioResult.SinPendientes ->
-//                        state.copy(isSending = false)
-//                    is EnvioResult.Error ->
-//                        state.copy(isSending = false, error = result.message)
-//                }
-//            }
-//        }
-//    }
-//
-//    fun clearSendSuccess() = _uiState.update { it.copy(sendSuccess = false) }
-//    fun clearError() = _uiState.update { it.copy(error = null) }
-//}
-
 import androidx.lifecycle.SavedStateHandle
+import kotlinx.serialization.descriptors.StructureKind
+import java.util.Objects
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -213,6 +28,7 @@ class ConglomeradoViewModel @Inject constructor(
     private val repo: ConglomeradoListRepository,
     private val savedState: SavedStateHandle,
 ) : ViewModel(), ConglomeradoActions {
+
 
     private val _uiState = MutableStateFlow(ConglomeradoUiState())
     val uiState: StateFlow<ConglomeradoUiState> = _uiState.asStateFlow()
@@ -233,6 +49,29 @@ class ConglomeradoViewModel @Inject constructor(
             val anios = repo.getAniosDisponibles(userId)
             _uiState.update { it.copy(anios = anios) }
             if (anios.size == 1) onAnioSelected(userId, anios.first())
+        }
+    }
+
+//    override fun onCleared() {
+//        super.onCleared()
+//
+//        // Borramos los filtros del almacenamiento persistente
+//        savedState.remove<Int>(KEY_ANIO)
+//        savedState.remove<Int>(KEY_MES)
+//        savedState.remove<Int>(KEY_PERIODO)
+//        savedState.remove<Int>(KEY_PROYECTO)
+//        // Nota: No tocamos KEY_USER para que sepa qué usuario era, o puedes borrarlo si prefieres
+//    }
+
+    override fun resetFiltros() {
+        // Limpiar SavedStateHandle para que init() no restaure estado viejo
+        savedState.remove<Int>(KEY_ANIO)
+        savedState.remove<Int>(KEY_MES)
+        savedState.remove<Int>(KEY_PERIODO)
+        savedState.remove<Int>(KEY_PROYECTO)
+        // Limpiar UI inmediatamente
+        _uiState.update {
+            ConglomeradoUiState()   // estado inicial limpio
         }
     }
 
@@ -296,11 +135,18 @@ class ConglomeradoViewModel @Inject constructor(
     }
 
     private fun resetDesde(nivel: Int) {
+        // 1. Limpiamos de forma segura el SavedStateHandle según el nivel alterado
+        if (nivel <= 1) { savedState.remove<Int>(KEY_MES) }
+        if (nivel <= 2) { savedState.remove<Int>(KEY_PERIODO) }
+        if (nivel <= 3) {savedState.remove<Int>(KEY_PROYECTO) }
+
+        // 2. Sincronizamos el UI State
         _uiState.update { it.copy(
             mesSel = if (nivel <= 1) null else it.mesSel,
             periodoSel = if (nivel <= 2) null else it.periodoSel,
             proyectoSel = if (nivel <= 3) null else it.proyectoSel,
-            muestras = emptyList(), seleccionados = emptySet()
+            muestras = emptyList(),
+            seleccionados = emptySet()
         ) }
     }
 
@@ -324,9 +170,13 @@ class ConglomeradoViewModel @Inject constructor(
     override fun deseleccionarTodos() = _uiState.update { it.copy(seleccionados = emptySet()) }
     override fun clearSendSuccess() = _uiState.update { it.copy(sendSuccess = false) }
     override fun clearError() = _uiState.update { it.copy(error = null) }
+    override fun resetModoSeleccion() = _uiState.update { it.copy(modoSeleccion = false, seleccionados = emptySet(), anioSel = null, mesSel = null, periodoSel = null, proyectoSel = null) }
 }
 
 interface ConglomeradoActions {
+
+    fun resetFiltros()
+    fun resetModoSeleccion()
     fun onAnioSelected(userId: String, anio: Int)
     fun onMesSelected(userId: String, mes: Int)
     fun onPeriodoSelected(userId: String, periodo: Int)

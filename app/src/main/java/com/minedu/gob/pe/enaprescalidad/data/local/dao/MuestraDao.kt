@@ -13,12 +13,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MuestraConglomeradoDao {
 
-    // ══════════════════════════════════════════════════════════════════════════════
-//  SNIPPET 1 — Agregar en MuestraConglomeradoDao  (MuestraDao.kt)
-//  Las 5 queries de filtro + 1 para marcar sincronizada
-// ══════════════════════════════════════════════════════════════════════════════
-
-    // Lista filtrada por los 4 combos (reactiva)
     @Query("""
     SELECT m.*
     FROM Muestra_Conglomerado AS m

@@ -37,6 +37,8 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.SyncType
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
 import com.minedu.gob.pe.enaprescalidad.utils.formatDate
 import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
+import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreMes
+import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreMesLim
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginViewModel
 import com.minedu.gob.pe.enaprescalidad.viewmodel.UpdateUiState
 import com.minedu.gob.pe.enaprescalidad.viewmodel.UpdateViewModel
@@ -498,24 +500,6 @@ fun CargaSection(
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
-//                    Box(Modifier.horizontalScroll(rememberScrollState())) {
-//                        Column {
-//                            CargaTableHeader()
-//                            cargas.forEachIndexed { index, carga ->
-//                                CargaTableRow(
-//                                    carga = carga,
-//                                    onSyncItem = onSyncItem,
-//                                    isSyncItem = isSyncItem)
-//                                if (index < cargas.lastIndex) {
-//                                    HorizontalDivider(
-//                                        thickness = 0.5.dp,
-//                                        color = MaterialTheme.colorScheme.outlineVariant,
-//                                        modifier = Modifier.padding(horizontal = 12.dp),
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
                     Column {
                         CargaTableHeader()
                         cargas.forEachIndexed { index, carga ->
@@ -555,10 +539,6 @@ fun CargaTableRow(
         label = "progress_${carga.id}",
     )
 
-//    Row(
-//        modifier = modifier.padding(horizontal = 0.dp, vertical = 10.dp),
-//        verticalAlignment = Alignment.CenterVertically,
-//    ) {
     Row(
         modifier = modifier
             .fillMaxWidth()                          // <-- agregar fillMaxWidth
@@ -605,7 +585,7 @@ fun CargaTableRow(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                "${carga.mes} · P${carga.periodo}",
+                "${carga.mes.let { obtenerNombreMesLim(it) }} · Per${carga.periodo}",
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -760,10 +740,6 @@ internal fun CargaTableHeader() {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("",         Modifier.width(COL_ACTION),                      style = style)
-//        Text("ID / Periodo",   Modifier.width(COL_ID),                          style = style)
-//        Text("Progreso",       Modifier.width(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
-//        Text("Estado",         Modifier.width(COL_STATUS),                      style = style)
-//        Text("Últ. act.",      Modifier.width(COL_DATE),                        style = style)
         Text("ID / Periodo",   Modifier.weight(COL_ID),                          style = style)
         Text("Progreso",       Modifier.weight(COL_PROGRESS).padding(horizontal = 8.dp), style = style)
         Text("Estado",         Modifier.weight(COL_STATUS),                      style = style)
@@ -773,11 +749,6 @@ internal fun CargaTableHeader() {
     }
 }
 
-// ── Anchos de columna compartidos ─────────────────────────────────────────────
-//private val COL_ID       = 90.dp
-//private val COL_PROGRESS = 160.dp
-//private val COL_STATUS   = 80.dp
-//private val COL_DATE     = 80.dp
 private val COL_ACTION     = 35.dp
 
 private val COL_ID       = 1.4f
