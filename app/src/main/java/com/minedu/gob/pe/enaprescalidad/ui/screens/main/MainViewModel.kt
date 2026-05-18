@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minedu.gob.pe.enaprescalidad.ui.domain.model.SidebarItem
 import com.minedu.gob.pe.enaprescalidad.ui.domain.usecase.GetSidebarItemsUseCase
+import com.minedu.gob.pe.enaprescalidad.ui.navigation.NavigationManager
 import com.minedu.gob.pe.enaprescalidad.ui.screens.login.sesion.SessionManager
 import com.minedu.gob.pe.enaprescalidad.viewmodel.LoginState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,9 +20,10 @@ import jakarta.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val navigationManager: NavigationManager,
     private val getSidebarItems: GetSidebarItemsUseCase,
 
-) : ViewModel() {
+    ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -70,6 +72,9 @@ class MainViewModel @Inject constructor(
     }
 
     fun onItemSelected(itemId: String) {
+
+        if (_uiState.value.selectedItemId == itemId) return
+
         _uiState.update { state ->
             // Expande todos los ancestros del item seleccionado
             val ancestors = findAncestorIds(state.sidebarItems, itemId)
@@ -78,6 +83,8 @@ class MainViewModel @Inject constructor(
                 expandedItemIds = state.expandedItemIds + ancestors
             )
         }
+
+        navigationManager.navigateTo(itemId)
     }
 
     // Busca recursivamente los ids padre del item seleccionado

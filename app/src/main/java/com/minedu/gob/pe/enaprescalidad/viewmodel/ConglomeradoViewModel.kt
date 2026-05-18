@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.lifecycle.SavedStateHandle
+import com.minedu.gob.pe.enaprescalidad.ui.navigation.NavigationManager
+import kotlinx.coroutines.flow.drop
 import kotlinx.serialization.descriptors.StructureKind
 import java.util.Objects
 
@@ -25,10 +27,10 @@ import java.util.Objects
 
 @HiltViewModel
 class ConglomeradoViewModel @Inject constructor(
+    private val navigationManager: NavigationManager,
     private val repo: ConglomeradoListRepository,
     private val savedState: SavedStateHandle,
 ) : ViewModel(), ConglomeradoActions {
-
 
     private val _uiState = MutableStateFlow(ConglomeradoUiState())
     val uiState: StateFlow<ConglomeradoUiState> = _uiState.asStateFlow()
@@ -36,14 +38,35 @@ class ConglomeradoViewModel @Inject constructor(
     private companion object {
         const val KEY_ANIO = "cong_anio"; const val KEY_MES = "cong_mes"
         const val KEY_PERIODO = "cong_per"; const val KEY_PROYECTO = "cong_pro"
-        const val KEY_USER = "cong_user"
+        const val KEY_USER = "cong_user"; const val PANTALLA_ID  = "verificacionConglomerado"
+    }
+
+    init {
+        // Observa cambios de pantalla desde el NavigationManager.
+        // drop(1) ignora el valor inicial (el que había antes de suscribirse).
+        viewModelScope.launch {
+            navigationManager.currentScreen
+                .drop(1)
+                .collect { nuevoId ->
+                    val userId = savedState.get<String>(KEY_USER) ?: return@collect
+
+                    if (nuevoId != PANTALLA_ID) {
+                        // Salimos de conglomerado → limpiar todo
+                        resetFiltros()
+                    } else {
+                        init(userId)
+                    }
+                }
+        }
     }
 
     fun init(userId: String) {
+        // Si hay estado guardado en SavedStateHandle (viene de rotación) → restaurar
         if (savedState.get<String>(KEY_USER) == userId && savedState.contains(KEY_ANIO)) {
             restoreState(userId)
             return
         }
+        // Primera carga o post-reset → carga fresca
         viewModelScope.launch {
             savedState[KEY_USER] = userId
             val anios = repo.getAniosDisponibles(userId)
@@ -51,17 +74,6 @@ class ConglomeradoViewModel @Inject constructor(
             if (anios.size == 1) onAnioSelected(userId, anios.first())
         }
     }
-
-//    override fun onCleared() {
-//        super.onCleared()
-//
-//        // Borramos los filtros del almacenamiento persistente
-//        savedState.remove<Int>(KEY_ANIO)
-//        savedState.remove<Int>(KEY_MES)
-//        savedState.remove<Int>(KEY_PERIODO)
-//        savedState.remove<Int>(KEY_PROYECTO)
-//        // Nota: No tocamos KEY_USER para que sepa qué usuario era, o puedes borrarlo si prefieres
-//    }
 
     override fun resetFiltros() {
         // Limpiar SavedStateHandle para que init() no restaure estado viejo
@@ -77,9 +89,9 @@ class ConglomeradoViewModel @Inject constructor(
 
     private fun restoreState(userId: String) {
         viewModelScope.launch {
-            val a = savedState.get<Int>(KEY_ANIO) ?: return@launch
-            val m = savedState.get<Int>(KEY_MES)
-            val p = savedState.get<Int>(KEY_PERIODO)
+            val a  = savedState.get<Int>(KEY_ANIO)     ?: return@launch
+            val m  = savedState.get<Int>(KEY_MES)
+            val p  = savedState.get<Int>(KEY_PERIODO)
             val pr = savedState.get<Int>(KEY_PROYECTO)
 
             _uiState.update { it.copy(anios = repo.getAniosDisponibles(userId), anioSel = a) }
@@ -174,7 +186,6 @@ class ConglomeradoViewModel @Inject constructor(
 }
 
 interface ConglomeradoActions {
-
     fun resetFiltros()
     fun resetModoSeleccion()
     fun onAnioSelected(userId: String, anio: Int)

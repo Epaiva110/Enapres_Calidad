@@ -129,7 +129,6 @@ fun MainContent(
                     NavIds.SETTINGS    -> SettingsScreen()
                     NavIds.CARGA_MARCO -> UpdateScreen()
                     NavIds.CONGLOMERADO -> ConglomeradoScreen(
-                        star = true,
                         onNavigateCuestionario = { muestraId ->
                             // TODO: navegar al cuestionario pasando muestraId
                         }

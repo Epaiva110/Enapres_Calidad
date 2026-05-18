@@ -51,7 +51,6 @@ import java.util.Objects
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConglomeradoScreen(
-    star: Boolean,
     onNavigateCuestionario: (Int) -> Unit,
     viewModel: ConglomeradoViewModel = hiltViewModel(),
     viewModelLogin: LoginViewModel = hiltViewModel()
@@ -69,8 +68,6 @@ fun ConglomeradoScreen(
             viewModel.init(userId)
         }
     }
-
-    Log.d("ConglomeradoScreen2", star.toString())
 
     HandleUiEffects(uiState, snackbarHostState, viewModel)
 
