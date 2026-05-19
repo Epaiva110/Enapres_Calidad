@@ -22,6 +22,9 @@ interface SurveyConglomeradoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(respuesta: SurveyConglomeradoEntity)
 
+    @Query("DELETE FROM Survey_Conglomerado WHERE muestra_id = :muestraId AND survey_id = :surveyId AND variable = :variable")
+    suspend fun borrarVariable(muestraId: Int, surveyId: String, variable: String)
+
     // Upsert de varias a la vez (útil para restaurar estado)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(respuestas: List<SurveyConglomeradoEntity>)

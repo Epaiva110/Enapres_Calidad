@@ -1,0 +1,292 @@
+{
+  "survey_id": "CONG_CAL_2026",
+  "title": "Control de Calidad — ENAPRES 2026",
+  "config": {
+    "color_resaltado": "#1565C0",
+    "min_caracteres_observacion": 15,
+    "guardar_automatico": true,
+    "mostrar_progreso": true
+  },
+  "paginas": [
+    {
+      "id_pagina": 0,
+      "seccion_id": "SEC1",
+      "titulo_seccion": "Sección 1 — Identificación",
+      "titulo": "Datos del conglomerado",
+      "preguntas": [
+        {
+          "variable": "INFO_01",
+          "type": "info",
+          "label": "Complete los datos de identificación del conglomerado antes de iniciar la supervisión.",
+          "hint": "Estos datos son obligatorios para validar el cuestionario.",
+          "required": false
+        },
+        {
+          "variable": "P001",
+          "type": "date",
+          "label": "Fecha de la supervisión",
+          "required": true
+        },
+        {
+          "variable": "P002",
+          "type": "time",
+          "label": "Hora de inicio",
+          "required": true
+        },
+        {
+          "variable": "P003",
+          "type": "single",
+          "label": "¿El encuestador estuvo presente durante toda la visita?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí, estuvo presente todo el tiempo" },
+            { "value": "2", "label": "Estuvo presente solo parte del tiempo" },
+            { "value": "3", "label": "No estuvo presente" }
+          ]
+        },
+        {
+          "variable": "P004",
+          "type": "text",
+          "label": "Observaciones sobre la presencia del encuestador",
+          "hint": "Describa la situación si hubo ausencias",
+          "required": false,
+          "max_length": 500,
+          "show_if": {
+            "type": "rule",
+            "variable": "P003",
+            "operator": "eq",
+            "value": "2"
+          }
+        }
+      ]
+    },
+    {
+      "id_pagina": 1,
+      "seccion_id": "SEC1",
+      "titulo_seccion": "Sección 1 — Identificación",
+      "titulo": "Datos del conglomerado",
+      "preguntas": [
+        {
+          "variable": "P0015",
+          "type": "date",
+          "label": "Fecha de la REVISION",
+          "required": true
+        },
+        {
+          "variable": "P0025",
+          "type": "time",
+          "label": "Hora de inicio REVISION",
+          "required": true
+        },
+        {
+          "variable": "P0038",
+          "type": "single",
+          "label": "¿El encuestador estuvo presente durante toda la visita REVISION?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí, estuvo presente todo el tiempo" },
+            { "value": "2", "label": "Estuvo presente solo parte del tiempo" },
+            { "value": "3", "label": "No estuvo presente", "jump_to_page": 4 }
+          ]
+        },
+        {
+          "variable": "P0045",
+          "type": "text",
+          "label": "Observaciones sobre la presencia del encuestador",
+          "hint": "Describa la situación si hubo ausencias",
+          "required": false,
+          "max_length": 500,
+          "show_if": {
+            "type": "rule",
+            "variable": "P003",
+            "operator": "eq",
+            "value": "2"
+          }
+        }
+      ]
+    },
+    {
+      "id_pagina": 2,
+      "seccion_id": "SEC2",
+      "titulo_seccion": "Sección 2 — Verificación de campo",
+      "titulo": "Calidad del trabajo de campo",
+      "preguntas": [
+        {
+          "variable": "P101",
+          "type": "matrix",
+          "label": "Verificación de procedimientos del encuestador",
+          "required": true,
+          "options": [
+            { "variable": "P101_1", "label": "Se presentó correctamente al informante" },
+            { "variable": "P101_2", "label": "Leyó las preguntas textualmente", "disabled_if_cols": ["3"] },
+            { "variable": "P101_3", "label": "Registró las respuestas correctamente", "disabled_if_cols": ["3"] },
+            { "variable": "P101_4", "label": "Completó todas las secciones del cuestionario" },
+            { "variable": "P101_5", "label": "Solicitó aclaración cuando fue necesario", "is_other": true }
+          ]
+        },
+        {
+          "variable": "P102",
+          "type": "matrix_scale",
+          "label": "Evalúe la calidad de los datos registrados",
+          "required": true,
+          "scale_min": 1,
+          "scale_max": 5,
+          "scale_labels": ["Muy deficiente", "Excelente"],
+          "options": [
+            { "variable": "P102_1", "label": "Claridad en las respuestas" },
+            { "variable": "P102_2", "label": "Consistencia entre secciones" },
+            { "variable": "P102_3", "label": "Completitud del formulario" },
+            { "variable": "P102_4", "label": "Legibilidad de la escritura" }
+          ]
+        },
+        {
+          "variable": "P103",
+          "type": "likert",
+          "label": "Satisfacción general con el trabajo del encuestador",
+          "required": true,
+          "likert_type": "stars",
+          "likert_count": 5
+        }
+      ]
+    },
+    {
+      "id_pagina": 3,
+      "seccion_id": "SEC3",
+      "titulo_seccion": "Sección 3 — Problemas detectados",
+      "titulo": "Incidencias y problemas",
+      "preguntas": [
+        {
+          "variable": "P201",
+          "type": "multiple_binary",
+          "label": "¿Qué problemas detectó durante la supervisión?",
+          "required": true,
+          "options": [
+            { "variable": "P201_1", "label": "Respuestas inconsistentes entre secciones" },
+            { "variable": "P201_2", "label": "Preguntas omitidas sin justificación" },
+            { "variable": "P201_3", "label": "Datos de identificación incorrectos" },
+            { "variable": "P201_4", "label": "El informante no era el adecuado" },
+            { "variable": "P201_5", "label": "Otro", "is_other": true },
+            { "variable": "P201_N", "label": "Ningún problema detectado", "is_none": true }
+          ]
+        },
+        {
+          "variable": "P202",
+          "type": "number",
+          "label": "¿Cuántas preguntas requirieron corrección?",
+          "required": true,
+          "min_value": 0.0,
+          "max_value": 200.0,
+          "show_if": {
+            "type": "rule",
+            "variable": "P201_N",
+            "operator": "neq",
+            "value": "true"
+          }
+        },
+        {
+          "variable": "P203",
+          "type": "slider",
+          "label": "Porcentaje estimado de datos que requieren revisión",
+          "hint": "0 = ninguno necesita revisión, 100 = todos necesitan revisión",
+          "required": true,
+          "min_value": 0.0,
+          "max_value": 100.0,
+          "step": 5.0
+        },
+        {
+          "variable": "P204",
+          "type": "multiple",
+          "label": "¿Qué secciones presentaron más problemas?",
+          "required": false,
+          "options": [
+            { "value": "CAP1", "label": "Capítulo 1 — Vivienda" },
+            { "value": "CAP2", "label": "Capítulo 2 — Hogar" },
+            { "value": "CAP3", "label": "Capítulo 3 — Miembros" },
+            { "value": "CAP4", "label": "Capítulo 4 — Empleo" },
+            { "value": "CAP5", "label": "Capítulo 5 — Ingresos" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 4,
+      "seccion_id": "SEC4",
+      "titulo_seccion": "Sección 4 — Prioridades",
+      "titulo": "Áreas de mejora y priorización",
+      "preguntas": [
+        {
+          "variable": "P301",
+          "type": "ranking",
+          "label": "Ordene de mayor a menor prioridad las áreas que requieren capacitación",
+          "required": true,
+          "options": [
+            { "value": "CAP_ENTREV", "label": "Técnica de entrevista" },
+            { "value": "CAP_CONSIST", "label": "Consistencia de datos" },
+            { "value": "CAP_MAPA", "label": "Uso del mapa cartográfico" },
+            { "value": "CAP_GPS", "label": "Captura GPS" },
+            { "value": "CAP_DIGITAL", "label": "Digitalización de respuestas" }
+          ]
+        },
+        {
+          "variable": "P302",
+          "type": "decimal",
+          "label": "Tiempo promedio por cuestionario (en minutos)",
+          "required": true,
+          "min_value": 5.0,
+          "max_value": 180.0,
+          "hint": "Registre con un decimal de precisión (ej: 45.5)"
+        }
+      ]
+    },
+    {
+      "id_pagina": 5,
+      "seccion_id": "SEC5",
+      "titulo_seccion": "Sección 5 — Cierre",
+      "titulo": "Evidencias y cierre",
+      "preguntas": [
+        {
+          "variable": "P401",
+          "type": "gps",
+          "label": "Ubicación GPS del conglomerado",
+          "required": true,
+          "allow_skip": false
+        },
+        {
+          "variable": "P402",
+          "type": "photo",
+          "label": "Foto de evidencia de la supervisión",
+          "required": true,
+          "max_photos": 3,
+          "allow_gallery": false,
+          "hint": "Tome hasta 3 fotos como evidencia del trabajo supervisado"
+        },
+        {
+          "variable": "P403",
+          "type": "datetime",
+          "label": "Fecha y hora de cierre de la supervisión",
+          "required": true
+        },
+        {
+          "variable": "P404",
+          "type": "single",
+          "label": "Resultado de la supervisión",
+          "required": true,
+          "options": [
+            { "value": "APROBADO", "label": "✅ Aprobado — datos aceptables" },
+            { "value": "OBS",      "label": "⚠️ Con observaciones — requiere corrección" },
+            { "value": "RECHAZADO","label": "❌ Rechazado — requiere nueva visita" }
+          ]
+        },
+        {
+          "variable": "P405",
+          "type": "text",
+          "label": "Justificación del resultado",
+          "required": true,
+          "min_length": 20,
+          "max_length": 1000,
+          "hint": "Explique detalladamente el resultado de la supervisión"
+        }
+      ]
+    }
+  ]
+}
