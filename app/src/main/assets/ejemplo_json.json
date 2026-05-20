@@ -1,6 +1,6 @@
 {
-  "survey_id": "CONG_CAL_2026",
-  "title": "Control de Calidad — ENAPRES 2026",
+  "survey_id": "DEMO_TODOS_TIPOS_2026",
+  "title": "Demostración — Todos los tipos de pregunta",
   "config": {
     "color_resaltado": "#1565C0",
     "min_caracteres_observacion": 15,
@@ -9,229 +9,409 @@
   },
   "paginas": [
     {
-      "id_pagina": 0,
-      "seccion_id": "SEC1",
-      "titulo_seccion": "Sección 1 — Identificación",
-      "titulo": "Datos del conglomerado",
+      "id_pagina": 1,
+      "seccion_id": "SEC_TEXTO",
+      "titulo_seccion": "Sección 1 — Texto y Números",
+      "titulo": "Tipos de entrada de datos",
       "preguntas": [
         {
           "variable": "INFO_01",
           "type": "info",
-          "label": "Complete los datos de identificación del conglomerado antes de iniciar la supervisión.",
-          "hint": "Estos datos son obligatorios para validar el cuestionario.",
+          "label": "Instrucciones generales",
+          "hint": "Complete todos los campos marcados con * antes de continuar.",
           "required": false
         },
         {
-          "variable": "P001",
-          "type": "date",
-          "label": "Fecha de la supervisión",
-          "required": true
-        },
-        {
-          "variable": "P002",
-          "type": "time",
-          "label": "Hora de inicio",
-          "required": true
-        },
-        {
-          "variable": "P003",
-          "type": "single",
-          "label": "¿El encuestador estuvo presente durante toda la visita?",
-          "required": true,
-          "options": [
-            { "value": "1", "label": "Sí, estuvo presente todo el tiempo" },
-            { "value": "2", "label": "Estuvo presente solo parte del tiempo" },
-            { "value": "3", "label": "No estuvo presente", "jump_to_page": 3 }
-          ]
-        },
-        {
-          "variable": "P004",
+          "variable": "P_TEXT",
           "type": "text",
-          "label": "Observaciones sobre la presencia del encuestador",
-          "hint": "Describa la situación si hubo ausencias",
-          "required": false,
-          "max_length": 500,
-          "show_if": { "variable": "P003", "operator": "eq", "value": "2" }
-        }
-      ]
-    },
-    {
-      "id_pagina": 1,
-      "seccion_id": "SEC2",
-      "titulo_seccion": "Sección 2 — Verificación de campo",
-      "titulo": "Calidad del trabajo de campo",
-      "preguntas": [
-        {
-          "variable": "P101",
-          "type": "matrix",
-          "label": "Verificación de procedimientos del encuestador",
+          "label": "Descripción libre",
+          "hint": "Mínimo 10 caracteres, máximo 500",
           "required": true,
-          "options": [
-            { "variable": "P101_1", "label": "Se presentó correctamente al informante" },
-            { "variable": "P101_2", "label": "Leyó las preguntas textualmente", "disabled_if_cols": ["3"] },
-            { "variable": "P101_3", "label": "Registró las respuestas correctamente", "disabled_if_cols": ["3"] },
-            { "variable": "P101_4", "label": "Completó todas las secciones del cuestionario" },
-            { "variable": "P101_5", "label": "Solicitó aclaración cuando fue necesario", "is_other": true }
-          ]
+          "min_length": 10,
+          "max_length": 500
         },
         {
-          "variable": "P102",
-          "type": "matrix_scale",
-          "label": "Evalúe la calidad de los datos registrados",
+          "variable": "P_NUM",
+          "type": "number",
+          "label": "Número entero (edad)",
           "required": true,
-          "scale_min": 1,
-          "scale_max": 5,
-          "scale_labels": ["Muy deficiente", "Excelente"],
-          "options": [
-            { "variable": "P102_1", "label": "Claridad en las respuestas" },
-            { "variable": "P102_2", "label": "Consistencia entre secciones" },
-            { "variable": "P102_3", "label": "Completitud del formulario" },
-            { "variable": "P102_4", "label": "Legibilidad de la escritura" }
-          ]
+          "min_value": 0,
+          "max_value": 120
         },
         {
-          "variable": "P103",
-          "type": "likert",
-          "label": "Satisfacción general con el trabajo del encuestador",
+          "variable": "P_DEC",
+          "type": "decimal",
+          "label": "Número decimal (peso en kg)",
           "required": true,
-          "likert_type": "stars",
-          "likert_count": 5,
-          "scale_labels": ["Muy insatisfecho", "Muy satisfecho"]
+          "min_value": 0.5,
+          "max_value": 300.0
+        },
+        {
+          "variable": "P_DATE",
+          "type": "date",
+          "label": "Fecha de nacimiento",
+          "required": true
+        },
+        {
+          "variable": "P_TIME",
+          "type": "time",
+          "label": "Hora de inicio de la actividad",
+          "required": true
+        },
+        {
+          "variable": "P_DATETIME",
+          "type": "datetime",
+          "label": "Fecha y hora del evento",
+          "required": false
         }
       ]
     },
     {
       "id_pagina": 2,
-      "seccion_id": "SEC3",
-      "titulo_seccion": "Sección 3 — Problemas detectados",
-      "titulo": "Incidencias y problemas",
+      "seccion_id": "SEC_SELECCION",
+      "titulo_seccion": "Sección 2 — Selección",
+      "titulo": "Preguntas de opción única y múltiple",
       "preguntas": [
         {
-          "variable": "P201",
-          "type": "multiple_binary",
-          "label": "¿Qué problemas detectó durante la supervisión?",
+          "variable": "P_SINGLE",
+          "type": "single",
+          "label": "¿Cuál es su nivel educativo?",
           "required": true,
           "options": [
-            { "variable": "P201_1", "label": "Respuestas inconsistentes entre secciones" },
-            { "variable": "P201_2", "label": "Preguntas omitidas sin justificación" },
-            { "variable": "P201_3", "label": "Datos de identificación incorrectos" },
-            { "variable": "P201_4", "label": "El informante no era el adecuado" },
-            { "variable": "P201_5", "label": "Otro", "is_other": true },
-            { "variable": "P201_N", "label": "Ningún problema detectado", "is_none": true }
+            { "value": "1", "label": "Sin educación" },
+            { "value": "2", "label": "Primaria" },
+            { "value": "3", "label": "Secundaria" },
+            { "value": "4", "label": "Superior técnica" },
+            { "value": "5", "label": "Superior universitaria" },
+            {
+              "value": "6",
+              "label": "Otro",
+              "is_other": true,
+              "detail_questions": [
+                {
+                  "variable": "P_SINGLE_OTRO",
+                  "type": "text",
+                  "label": "Especifique el nivel educativo",
+                  "required": true,
+                  "max_length": 100
+                }
+              ]
+            }
           ]
         },
         {
-          "variable": "P202",
-          "type": "number",
-          "label": "¿Cuántas preguntas requirieron corrección?",
+          "variable": "P_SINGLE_JUMP",
+          "type": "single",
+          "label": "¿Trabaja actualmente?",
           "required": true,
-          "min_value": 0,
-          "max_value": 200,
-          "show_if": { "variable": "P201_N", "operator": "neq", "value": "true" }
-        },
-        {
-          "variable": "P203",
-          "type": "slider",
-          "label": "Porcentaje estimado de datos que requieren revisión",
-          "hint": "0 = ninguno necesita revisión, 100 = todos necesitan revisión",
-          "required": true,
-          "min_value": 0,
-          "max_value": 100,
-          "step": 5,
-          "scale_labels": ["0% — Sin revisión", "100% — Todo a revisar"]
-        },
-        {
-          "variable": "P204",
-          "type": "multiple",
-          "label": "¿Qué secciones presentaron más problemas?",
-          "required": false,
           "options": [
-            { "value": "CAP1", "label": "Capítulo 1 — Vivienda" },
-            { "value": "CAP2", "label": "Capítulo 2 — Hogar" },
-            { "value": "CAP3", "label": "Capítulo 3 — Miembros" },
-            { "value": "CAP4", "label": "Capítulo 4 — Empleo" },
-            { "value": "CAP5", "label": "Capítulo 5 — Ingresos" }
+            { "value": "SI", "label": "Sí" },
+            { "value": "NO", "label": "No", "jump_to_page": 3 }
+          ]
+        },
+        {
+          "variable": "P_EMPLEO_TIPO",
+          "type": "single",
+          "label": "Tipo de empleo",
+          "required": true,
+          "show_if": { "variable": "P_SINGLE_JUMP", "operator": "eq", "value": "SI" },
+          "options": [
+            {
+              "value": "DEP", "label": "Dependiente",
+              "detail_questions": [
+                {
+                  "variable": "P_EMPRESA",
+                  "type": "text",
+                  "label": "Nombre de la empresa",
+                  "required": true,
+                  "max_length": 200
+                },
+                {
+                  "variable": "P_SALARIO",
+                  "type": "decimal",
+                  "label": "Salario mensual (S/.)",
+                  "required": true,
+                  "min_value": 0
+                }
+              ]
+            },
+            {
+              "value": "IND", "label": "Independiente",
+              "detail_questions": [
+                {
+                  "variable": "P_RUBRO",
+                  "type": "text",
+                  "label": "Rubro o actividad económica",
+                  "required": true,
+                  "max_length": 200
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "variable": "P_MULTIPLE",
+          "type": "multiple",
+          "label": "¿Qué servicios tiene en su vivienda? (puede seleccionar varios)",
+          "required": true,
+          "options": [
+            {
+              "value": "AGUA", "label": "Agua potable",
+              "detail_questions": [
+                {
+                  "variable": "P_AGUA_HORAS",
+                  "type": "number",
+                  "label": "Horas de servicio al día",
+                  "required": true,
+                  "min_value": 1,
+                  "max_value": 24
+                }
+              ]
+            },
+            { "value": "LUZ",  "label": "Electricidad" },
+            { "value": "GAS",  "label": "Gas natural" },
+            { "value": "INET", "label": "Internet" },
+            {
+              "value": "OTRO", "label": "Otro servicio", "is_other": true,
+              "detail_questions": [
+                {
+                  "variable": "P_SERV_OTRO",
+                  "type": "text",
+                  "label": "Especifique el servicio",
+                  "required": true
+                }
+              ]
+            },
+            { "value": "NINGUNO", "label": "Ninguno de los anteriores", "is_none": true }
           ]
         }
       ]
     },
     {
       "id_pagina": 3,
-      "seccion_id": "SEC4",
-      "titulo_seccion": "Sección 4 — Prioridades",
-      "titulo": "Áreas de mejora y priorización",
+      "seccion_id": "SEC_MATRIX",
+      "titulo_seccion": "Sección 3 — Matrices",
+      "titulo": "Preguntas de matriz",
       "preguntas": [
         {
-          "variable": "P301",
-          "type": "ranking",
-          "label": "Ordene de mayor a menor prioridad las áreas que requieren capacitación",
+          "variable": "P_MATRIX",
+          "type": "matrix",
+          "label": "Verificación de condiciones del hogar",
           "required": true,
           "options": [
-            { "value": "CAP_ENTREV", "label": "Técnica de entrevista" },
-            { "value": "CAP_CONSIST", "label": "Consistencia de datos" },
-            { "value": "CAP_MAPA", "label": "Uso del mapa cartográfico" },
-            { "value": "CAP_GPS", "label": "Captura GPS" },
-            { "value": "CAP_DIGITAL", "label": "Digitalización de respuestas" }
+            { "variable": "PISO",    "label": "Piso de material noble" },
+            { "variable": "TECHO",   "label": "Techo de material noble" },
+            { "variable": "PARED",   "label": "Paredes de material noble" },
+            {
+              "variable": "BANO", "label": "Baño con desagüe", "is_other": true,
+              "detail_questions": [
+                {
+                  "variable": "BANO_TIPO",
+                  "type": "single",
+                  "label": "Tipo de baño",
+                  "required": true,
+                  "show_if": { "variable": "BANO", "operator": "eq", "value": "1" },
+                  "options": [
+                    { "value": "IND", "label": "Baño privado" },
+                    { "value": "COM", "label": "Baño compartido" }
+                  ]
+                }
+              ]
+            },
+            { "variable": "AGUA_RED","label": "Agua de red pública", "disabled_if_cols": ["3"] }
           ]
         },
         {
-          "variable": "P302",
-          "type": "decimal",
-          "label": "Tiempo promedio por cuestionario (en minutos)",
+          "variable": "P_MATRIX_SCALE",
+          "type": "matrix_scale",
+          "label": "Evalúe la calidad de los siguientes servicios públicos",
           "required": true,
-          "min_value": 5.0,
-          "max_value": 180.0,
-          "hint": "Registre con un decimal de precisión (ej: 45.5)"
+          "scale_min": 1,
+          "scale_max": 5,
+          "scale_labels": ["Muy malo", "Muy bueno"],
+          "options": [
+            { "variable": "CAL_SALUD",  "label": "Salud pública" },
+            { "variable": "CAL_EDUC",   "label": "Educación pública" },
+            { "variable": "CAL_TRANSP", "label": "Transporte público" },
+            { "variable": "CAL_SEGUR",  "label": "Seguridad ciudadana" }
+          ]
         }
       ]
     },
     {
       "id_pagina": 4,
-      "seccion_id": "SEC5",
-      "titulo_seccion": "Sección 5 — Cierre",
-      "titulo": "Evidencias y cierre",
+      "seccion_id": "SEC_ESCALAS",
+      "titulo_seccion": "Sección 4 — Escalas y Valoraciones",
+      "titulo": "Slider, Likert y Ranking",
       "preguntas": [
         {
-          "variable": "P401",
-          "type": "gps",
-          "label": "Ubicación GPS del conglomerado",
+          "variable": "P_SLIDER",
+          "type": "slider",
+          "label": "Porcentaje de satisfacción general con el servicio",
           "required": true,
-          "allow_skip": false
+          "min_value": 0,
+          "max_value": 100,
+          "step": 5,
+          "scale_labels": ["0% — Nada satisfecho", "100% — Muy satisfecho"]
         },
         {
-          "variable": "P402",
-          "type": "photo",
-          "label": "Foto de evidencia de la supervisión",
+          "variable": "P_LIKERT_STARS",
+          "type": "likert",
+          "label": "Calificación general del servicio de atención",
           "required": true,
-          "max_photos": 3,
-          "allow_gallery": false,
-          "hint": "Tome hasta 3 fotos como evidencia del trabajo supervisado"
+          "likert_type": "stars",
+          "likert_count": 5,
+          "scale_labels": ["Pésimo", "Excelente"]
         },
         {
-          "variable": "P403",
-          "type": "datetime",
-          "label": "Fecha y hora de cierre de la supervisión",
-          "required": true
+          "variable": "P_LIKERT_EMOJI",
+          "type": "likert",
+          "label": "¿Cómo se siente con la atención recibida?",
+          "required": true,
+          "likert_type": "emoji",
+          "likert_count": 5
         },
         {
-          "variable": "P404",
-          "type": "single",
-          "label": "Resultado de la supervisión",
+          "variable": "P_RANKING",
+          "type": "ranking",
+          "label": "Ordene de mayor a menor prioridad los problemas de su comunidad",
           "required": true,
           "options": [
-            { "value": "APROBADO", "label": "✅ Aprobado — datos aceptables" },
-            { "value": "OBS",      "label": "⚠️ Con observaciones — requiere corrección" },
-            { "value": "RECHAZADO","label": "❌ Rechazado — requiere nueva visita" }
+            { "value": "INSEG",   "label": "Inseguridad" },
+            { "value": "BASURA",  "label": "Recojo de basura" },
+            { "value": "PISTAS",  "label": "Pistas y veredas" },
+            { "value": "LUZ",     "label": "Alumbrado público" },
+            { "value": "PARQUES", "label": "Áreas verdes y parques" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 5,
+      "seccion_id": "SEC_LOGICA",
+      "titulo_seccion": "Sección 5 — Lógica Avanzada",
+      "titulo": "Condiciones AND/OR y reglas entre variables",
+      "preguntas": [
+        {
+          "variable": "P_EDAD_RANGO",
+          "type": "single",
+          "label": "Rango de edad",
+          "required": true,
+          "options": [
+            { "value": "MENOR", "label": "Menor de 18 años" },
+            { "value": "ADULTO","label": "18 a 60 años" },
+            { "value": "MAYOR", "label": "Mayor de 60 años" }
           ]
         },
         {
-          "variable": "P405",
+          "variable": "P_SOLO_ADULTOS",
+          "type": "single",
+          "label": "¿Tiene empleo formal?",
+          "required": true,
+          "show_if": {
+            "operator": "AND",
+            "conditions": [
+              { "variable": "P_EDAD_RANGO", "operator": "eq",     "value": "ADULTO" },
+              { "variable": "P_SINGLE_JUMP","operator": "not_null" }
+            ]
+          },
+          "options": [
+            { "value": "SI", "label": "Sí" },
+            { "value": "NO", "label": "No" }
+          ]
+        },
+        {
+          "variable": "P_MENORES_O_MAYORES",
           "type": "text",
-          "label": "Justificación del resultado",
+          "label": "¿Recibe algún bono o pensión del Estado?",
+          "required": false,
+          "show_if": {
+            "operator": "OR",
+            "conditions": [
+              { "variable": "P_EDAD_RANGO", "operator": "eq", "value": "MENOR" },
+              { "variable": "P_EDAD_RANGO", "operator": "eq", "value": "MAYOR" }
+            ]
+          }
+        },
+        {
+          "variable": "P_REGLA_CRUZADA",
+          "type": "single",
+          "label": "Resultado combinado — visible si nivel educativo >= 4 Y trabaja",
+          "required": false,
+          "show_if": {
+            "operator": "AND",
+            "conditions": [
+              { "variable": "P_SINGLE",     "operator": "in",  "value": ["4","5"] },
+              { "variable": "P_SINGLE_JUMP","operator": "eq",  "value": "SI" }
+            ]
+          },
+          "options": [
+            { "value": "A", "label": "Opción A" },
+            { "value": "B", "label": "Opción B" }
+          ]
+        },
+        {
+          "variable": "P_SUMA_SERVICIOS",
+          "type": "info",
+          "label": "Regla de grupo: Se muestra si tiene agua Y electricidad seleccionadas",
+          "show_if": {
+            "operator": "AND",
+            "conditions": [
+              { "variable": "P_MULTIPLE", "operator": "contains", "value": "AGUA" },
+              { "variable": "P_MULTIPLE", "operator": "contains", "value": "LUZ" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id_pagina": 6,
+      "seccion_id": "SEC_MEDIA",
+      "titulo_seccion": "Sección 6 — Evidencias",
+      "titulo": "GPS y Fotografías",
+      "preguntas": [
+        {
+          "variable": "P_GPS",
+          "type": "gps",
+          "label": "Ubicación GPS del punto de supervisión",
+          "required": true,
+          "allow_skip": false,
+          "allow_manual": true
+        },
+        {
+          "variable": "P_FOTOS",
+          "type": "photo",
+          "label": "Fotografías de evidencia",
+          "required": true,
+          "max_photos": 5,
+          "allow_gallery": false,
+          "hint": "Tome hasta 5 fotos como evidencia"
+        },
+        {
+          "variable": "P_RESULTADO",
+          "type": "single",
+          "label": "Resultado final de la supervisión",
+          "required": true,
+          "options": [
+            { "value": "APROBADO",  "label": "✅ Aprobado" },
+            { "value": "OBS",       "label": "⚠️ Con observaciones" },
+            { "value": "RECHAZADO", "label": "❌ Rechazado" }
+          ]
+        },
+        {
+          "variable": "P_MOTIVO_OBS",
+          "type": "text",
+          "label": "Detalle las observaciones encontradas",
           "required": true,
           "min_length": 20,
           "max_length": 1000,
-          "hint": "Explique detalladamente el resultado de la supervisión"
+          "show_if": {
+            "operator": "OR",
+            "conditions": [
+              { "variable": "P_RESULTADO", "operator": "eq", "value": "OBS" },
+              { "variable": "P_RESULTADO", "operator": "eq", "value": "RECHAZADO" }
+            ]
+          }
         }
       ]
     }
