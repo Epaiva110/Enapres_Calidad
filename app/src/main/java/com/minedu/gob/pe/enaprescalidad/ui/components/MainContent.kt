@@ -27,7 +27,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.Routes
@@ -106,6 +105,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.minedu.gob.pe.enaprescalidad.surveys.ui.SurveyScreen
+import com.minedu.gob.pe.enaprescalidad.ui.components.maps.MapScreen
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable

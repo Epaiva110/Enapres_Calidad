@@ -1,6 +1,5 @@
 package com.minedu.gob.pe.enaprescalidad.utils
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import com.google.android.gms.common.api.ResolvableApiException
@@ -24,6 +23,11 @@ import androidx.activity.result.IntentSenderRequest
  * startResolutionForResult directo, que no funciona bien desde Compose
  * porque el Activity puede no estar en primer plano cuando se llama.
  */
+
+//fun requestGpsEnable(context: Context, onSenderReady: (android.app.PendingIntent) -> Unit) {
+//    // Aquí implementas el flujo estándar con LocationSettingsRequest (Google Play Services)
+//    // El cual provee el PendingIntent devuelto mediante el callback 'onSenderReady'
+//}
 fun requestGpsEnable(
     context: Context,
     launcher: (IntentSenderRequest) -> Unit,
@@ -82,3 +86,5 @@ fun openAirplaneSettings(context: Context) {
         }
     )
 }
+
+

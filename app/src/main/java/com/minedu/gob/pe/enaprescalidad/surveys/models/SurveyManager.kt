@@ -90,7 +90,7 @@ class SurveyManager(
     }
 
     /**
-     * Calcula dinámicamente qué páginas son visibles respetando los saltos de página (jump_to_page) [cite: 21]
+     * Calcula dinámicamente qué páginas son visibles respetando los saltos de página (jump_to_page) //[cite: 21]
      */
     fun getVisiblePageIds(): Set<Int> {
         val visiblePages = mutableSetOf<Int>()
@@ -121,7 +121,7 @@ class SurveyManager(
                 }
             }
 
-            // 2. Si no hubo salto por opción, evaluar si la última pregunta de la página tiene salto directo [cite: 21]
+            // 2. Si no hubo salto por opción, evaluar si la última pregunta de la página tiene salto directo //[cite: 21]
             if (jumpTarget == null) {
                 for (pregunta in paginaActual.preguntas) {
                     if (pregunta.jump_to_page != null) {
