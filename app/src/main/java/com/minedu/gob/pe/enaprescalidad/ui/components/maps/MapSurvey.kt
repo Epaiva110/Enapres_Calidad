@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -166,12 +167,13 @@ fun MapScreenForSurvey(
 
 @Composable
 private fun ModeToggle(current: MapMode, onToggle: () -> Unit) {
+
     val isManual = current == MapMode.MANUAL
+
     Surface(
         onClick       = onToggle,
         shape         = RoundedCornerShape(20.dp),
-        color         = if (isManual) MaterialTheme.colorScheme.secondaryContainer
-        else         MaterialTheme.colorScheme.primaryContainer,
+        color         = if (isManual) {MaterialTheme.colorScheme.secondaryContainer} else {MaterialTheme.colorScheme.primaryContainer},
         modifier      = Modifier.padding(end = 8.dp)
     ) {
         Row(

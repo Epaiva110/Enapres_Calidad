@@ -1,4 +1,4 @@
-package com.minedu.gob.pe.enaprescalidad.surveys.question
+package com.minedu.gob.pe.enaprescalidad.surveys.ui.component.question
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PhotoQuestion.kt
@@ -15,11 +15,12 @@ package com.minedu.gob.pe.enaprescalidad.surveys.question
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -137,7 +138,7 @@ fun PhotoQuestion(
         uri?.let {
             // Conceder permiso persistente de lectura
             context.contentResolver.takePersistableUriPermission(
-                it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
             val nuevaLista = fotos.toMutableList() + it.toString()
             fotos.clear(); fotos.addAll(nuevaLista)
@@ -510,9 +511,9 @@ private fun FotoViewer(uri: String, onDismiss: () -> Unit) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 private fun abrirAjustesApp(context: Context) {
-    val intent = android.content.Intent(
-        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        android.net.Uri.fromParts("package", context.packageName, null)
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
     )
     context.startActivity(intent)
 }

@@ -1,4 +1,4 @@
-package com.minedu.gob.pe.enaprescalidad.surveys.question
+package com.minedu.gob.pe.enaprescalidad.surveys.ui.component.question
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GpsQuestion.kt  (v2)
