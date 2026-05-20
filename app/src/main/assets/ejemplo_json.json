@@ -3,7 +3,7 @@
   "title": "Demostración — Todos los tipos de pregunta",
   "config": {
     "color_resaltado": "#1565C0",
-    "min_caracteres_observacion": 15,
+    "min_caracteres_observacion": 0,
     "guardar_automatico": true,
     "mostrar_progreso": true
   },

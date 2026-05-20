@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    res/xml/file_provider_paths.xml
+
+    Define los directorios que FileProvider puede exponer como URIs seguras.
+    "cache-path" apunta a context.cacheDir, que es donde PhotoQuestion.kt
+    guarda las fotos temporales (subcarpeta "survey_photos/").
+-->
+<paths>
+    <cache-path
+        name="survey_photos"
+        path="survey_photos/" />
+</paths>

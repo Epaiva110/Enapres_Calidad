@@ -44,6 +44,8 @@ import com.minedu.gob.pe.enaprescalidad.surveys.models.ConditionEvaluator
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Pagina
 import com.minedu.gob.pe.enaprescalidad.surveys.viewmodel.SurveyViewModel
 import androidx.core.graphics.toColorInt
+import com.minedu.gob.pe.enaprescalidad.surveys.question.GpsQuestion
+import com.minedu.gob.pe.enaprescalidad.surveys.question.PhotoQuestion
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -716,8 +718,8 @@ fun DynamicQuestionAdapter(
                 "slider" -> SliderQuestion(pregunta, valorActual as? Float ?: 0f, onValueChange)
                 "likert" -> LikertQuestion(pregunta, valorActual, onValueChange)
                 "ranking" -> RankingQuestion(pregunta, valorActual as? String ?: "", onValueChange)
-                "gps" -> GpsQuestionPlaceholder(pregunta, valorActual as? String ?: "", onValueChange)
-                "photo" -> PhotoQuestionPlaceholder(pregunta, valorActual as? List<*> ?: emptyList<Any>(), onValueChange)
+                "gps" -> GpsQuestion(pregunta, valorActual as? String ?: "", onValueChange)
+                "photo" -> PhotoQuestion(pregunta, valorActual as? List<*> ?: emptyList<Any>(), onValueChange)
                 else -> Text("Componente no soportado: ${pregunta.type}", color = MaterialTheme.colorScheme.error)
             }
         }
