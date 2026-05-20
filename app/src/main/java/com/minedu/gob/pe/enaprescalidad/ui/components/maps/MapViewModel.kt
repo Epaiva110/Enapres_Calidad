@@ -34,13 +34,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun showRationale(show: Boolean) = _uiState.update { it.copy(showRationaleDialog = show) }
     fun setGpsDialogActive(active: Boolean) = _uiState.update { it.copy(isGpsDialogActive = active) }
     fun dismissTimeoutDialog() = _uiState.update { it.copy(showTimeoutDialog = false) }
-    fun dismissAirplaneDialog() = _uiState.update { it.copy(showAirplaneDialog = false, rpshowAirplaneDialog = true) }
+    fun dismissAirplaneDialog() = _uiState.update { it.copy(showAirplaneDialog = false, rpShowAirplaneDialog = true) }
 
-//    fun syncInitialHardwareState(context: android.content.Context): Boolean {
-//        val airplaneOn = isAirplaneMode(context)
-//        _uiState.update { it.copy(isAirplaneMode = airplaneOn) }
-//        return airplaneOn
-//    }
+
 
     fun onHardwareChanged(gpsOn: Boolean, airplaneOn: Boolean, calculateLocation: Boolean, isInitialCheck: Boolean = false) {
         val anteriorAirplane = _uiState.value.isAirplaneMode
@@ -48,7 +44,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
         when {
             airplaneOn && !anteriorAirplane -> {
-                _uiState.update { it.copy(showAirplaneDialog = true, rpshowAirplaneDialog = false) }
+                _uiState.update { it.copy(showAirplaneDialog = true, rpShowAirplaneDialog = false) }
             }
             airplaneOn && isInitialCheck -> {
                 _uiState.update { it.copy(showAirplaneDialog = true) }

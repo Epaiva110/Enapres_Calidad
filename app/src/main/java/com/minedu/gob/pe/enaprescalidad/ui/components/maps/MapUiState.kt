@@ -26,7 +26,7 @@ data class MapUiState(
     val isGpsDialogActive: Boolean = false,
     val isAirplaneMode: Boolean = false,
     val showAirplaneDialog: Boolean = false,
-    val rpshowAirplaneDialog: Boolean = false,
+    val rpShowAirplaneDialog: Boolean = false,
     val locationData: LocationData = LocationData(),
     val isCalculatingLocation: Boolean = false,
     val showTimeoutDialog: Boolean = false,
