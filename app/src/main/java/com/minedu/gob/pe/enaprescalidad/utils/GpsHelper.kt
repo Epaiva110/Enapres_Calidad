@@ -43,18 +43,13 @@ fun requestGpsEnable(
         .checkLocationSettings(settingsRequest)
         .addOnFailureListener { exception ->
             if (exception is ResolvableApiException) {
-                // Construimos el IntentSenderRequest y lo lanzamos a través del launcher
-                // CORRECCIÓN BUG 2: el resultado siempre llega al gpsLauncher,
-                // tanto si el usuario acepta, cancela, o ignora el dialog.
+
                 launcher(
                     IntentSenderRequest.Builder(exception.resolution).build()
                 )
             }
-            // Si no es ResolvableApiException el GPS no se puede activar
-            // programáticamente → mandamos a Settings
         }
         .addOnSuccessListener {
-            // GPS ya estaba encendido — no hace nada porque evaluate() lo detectará
         }
 }
 

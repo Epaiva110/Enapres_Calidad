@@ -1,22 +1,6 @@
 package com.minedu.gob.pe.enaprescalidad.ui.components.maps
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MapScreenForSurvey.kt  (v2)
-//
-// Wrapper reutilizable sobre MapScreen que añade:
-//   · TopBar con botón cerrar y toggle Automático / Manual.
-//   · MapMode.AUTO   → GPS automático via MapScreen original.
-//   · MapMode.MANUAL → GoogleMap clickeable con Marker arrastrable.
-//   · onAccepted(LocationData) → callback unificado para GPS auto y manual.
-//
-// Uso standalone (no-encuesta):
-//   MapScreenForSurvey(
-//       title       = "Seleccionar punto",
-//       allowManual = true,
-//       onAccepted  = { data -> /* usar data.latitude, data.longitude */ },
-//       onDismiss   = { /* cerrar */ }
-//   )
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -40,10 +24,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Enum de modo
-// ─────────────────────────────────────────────────────────────────────────────
 
 enum class MapMode { AUTO, MANUAL }
 

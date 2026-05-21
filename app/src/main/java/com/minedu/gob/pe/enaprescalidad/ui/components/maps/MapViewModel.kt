@@ -32,10 +32,20 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setStep(step: MapFlowStep) = _uiState.update { it.copy(step = step) }
     fun showRationale(show: Boolean) = _uiState.update { it.copy(showRationaleDialog = show) }
-    fun setGpsDialogActive(active: Boolean) = _uiState.update { it.copy(isGpsDialogActive = active) }
+    //fun setGpsDialogActive(active: Boolean) = _uiState.update { it.copy(isGpsDialogActive = active) }
     fun dismissTimeoutDialog() = _uiState.update { it.copy(showTimeoutDialog = false) }
     fun dismissAirplaneDialog() = _uiState.update { it.copy(showAirplaneDialog = false, rpShowAirplaneDialog = true) }
 
+
+    @Volatile
+    private var gpsDialogShowing = false
+
+    fun setGpsDialogActive(active: Boolean) {
+        gpsDialogShowing = active
+        _uiState.update { it.copy(isGpsDialogActive = active) }
+    }
+
+    fun isGpsDialogShowing() = gpsDialogShowing
 
 
     fun onHardwareChanged(gpsOn: Boolean, airplaneOn: Boolean, calculateLocation: Boolean, isInitialCheck: Boolean = false) {
