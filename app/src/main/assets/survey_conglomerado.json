@@ -1,0 +1,209 @@
+{
+  "survey_id": "ENAPRES_VERIFICACION_CONGLOMERADO_2026",
+  "title": "Encuesta Nacional de Programas Presupuestales 2026 — Verificación de Muestra de Conglomerado",
+  "config": {
+    "color_resaltado": "#1565C0",
+    "min_caracteres_observacion": 20,
+    "guardar_automatico": true,
+    "mostrar_progreso": true
+  },
+  "paginas": [
+    {
+      "id_pagina": 1,
+      "seccion_id": "SEC_CONTEXTO",
+      "titulo_seccion": "SECCIÓN A: CONTEXTO DE LA SUPERVISIÓN",
+      "titulo": "Datos de Control y Contexto",
+      "preguntas": [
+        {
+          "variable": "P1",
+          "type": "single",
+          "label": "¿La supervisión se realizó durante el periodo de ejecución de la encuesta?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No", "jump_to_page": 2 }
+          ]
+        },
+        {
+          "variable": "P2",
+          "type": "single",
+          "label": "¿El encuestador se encontraba en el conglomerado durante la supervisión?",
+          "required": true,
+          "show_if": { "variable": "P1", "operator": "eq", "value": "1" },
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No", "jump_to_page": 2 }
+          ]
+        },
+        {
+          "variable": "P3_ID",
+          "type": "single",
+          "label": "¿El encuestador se encontraba debidamente identificado para el trabajo en campo? (Chaleco / Credencial)",
+          "required": true,
+          "show_if": { "variable": "P2", "operator": "eq", "value": "1" },
+          "options": [
+            { "value": "1", "label": "Sí", "jump_to_page": 2 },
+            { "value": "2", "label": "No", "jump_to_page": 2 }
+          ]
+        },
+        {
+          "variable": "P3_MOTIVO",
+          "type": "text",
+          "label": "¿Por qué motivo no se encontraba el encuestador?",
+          "required": true,
+          "show_if": { "variable": "P2", "operator": "eq", "value": "2" },
+          "max_length": 500
+        }
+      ]
+    },
+    {
+      "id_pagina": 2,
+      "seccion_id": "SEC_CARTOGRAFIA",
+      "titulo_seccion": "SECCIÓN B: CALIDAD DE LA CARTOGRAFÍA Y ENTORNO",
+      "titulo": "Evaluación del Entorno y Material Cartográfico",
+      "preguntas": [
+        {
+          "variable": "P5",
+          "type": "single",
+          "label": "Nivel de seguridad del conglomerado",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Muy bajo" },
+            { "value": "2", "label": "Bajo" },
+            { "value": "3", "label": "Medio" },
+            { "value": "4", "label": "Alto" },
+            { "value": "5", "label": "Muy alto" }
+          ]
+        },
+        {
+          "variable": "P6",
+          "type": "multiple",
+          "label": "Principales amenazas observadas para realizar la encuesta:",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Ninguna", "is_none": true },
+            { "value": "2", "label": "Delincuencia" },
+            { "value": "3", "label": "Pandillas" },
+            { "value": "4", "label": "Perros Callejeros" },
+            { "value": "5", "label": "Zona de difícil acceso geográfico" },
+            { "value": "6", "label": "Zonas con control de acceso" },
+            { "value": "7", "label": "Barrios cerrados"},
+            {
+              "value": "8",
+              "label": "Otras",
+              "is_other": true,
+              "detail_questions": [
+                {
+                  "variable": "P6_O",
+                  "type": "text",
+                  "label": "Especifique la otra amenaza observada",
+                  "required": true,
+                  "min_length": 3,
+                  "max_length": 200
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "variable": "P7",
+          "type": "single",
+          "label": "¿Opina Ud. que el encuestador podría desempeñar su trabajo en solitario en este conglomerado?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No" }
+          ]
+        },
+        {
+          "variable": "P8",
+          "type": "single",
+          "label": "¿Los límites del conglomerado están claramente definidos en el mapa?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No" }
+          ]
+        },
+        {
+          "variable": "P9",
+          "type": "single",
+          "label": "¿El croquis ayuda a ubicar correctamente el conglomerado?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Sí" },
+            { "value": "2", "label": "No" }
+          ]
+        },
+        {
+          "variable": "P12",
+          "type": "single",
+          "label": "Evaluación general del material cartográfico:",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Excelente" },
+            { "value": "2", "label": "Regular" },
+            { "value": "3", "label": "Deficiente" }
+          ]
+        },
+        {
+          "variable": "P11_GPS",
+          "type": "gps",
+          "label": "Coordenada de ubicación del conglomerado",
+          "required": true,
+          "allow_skip": false,
+          "allow_manual": true
+        },
+        {
+          "variable": "OBS_SECC_B",
+          "type": "text",
+          "label": "Observaciones de la Sección B",
+          "required": false,
+          "max_length": 1000
+        }
+      ]
+    },
+    {
+      "id_pagina": 3,
+      "seccion_id": "SEC_SOCIOECONOMICA",
+      "titulo_seccion": "SECCIÓN C: INFORMACIÓN SOCIOECONÓMICA Y GENERAL",
+      "titulo": "Clasificación de Entorno y Cierre",
+      "preguntas": [
+        {
+          "variable": "P13",
+          "type": "single",
+          "label": "¿En qué estrato socio económico usted clasificaría que está ubicado este conglomerado?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Muy alto" },
+            { "value": "2", "label": "Alto" },
+            { "value": "3", "label": "Medio" },
+            { "value": "4", "label": "Bajo" },
+            { "value": "5", "label": "Muy bajo" }
+          ]
+        },
+        {
+          "variable": "P14",
+          "type": "single",
+          "label": "¿Cómo calificaría el nivel de dificultad para acceder al conglomerado asignado?",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Muy alto" },
+            { "value": "2", "label": "Alto" },
+            { "value": "3", "label": "Medio" },
+            { "value": "4", "label": "Bajo" },
+            { "value": "5", "label": "Muy bajo" }
+          ]
+        },
+        {
+          "variable": "P15_OBS",
+          "type": "text",
+          "label": "Observaciones generales del conglomerado:",
+          "required": false,
+          "min_length": 0,
+          "max_length": 2000
+        }
+      ]
+    }
+  ]
+}

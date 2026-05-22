@@ -31,6 +31,8 @@ data class SurveyUiState(
     // índice actual
     val paginaActual: Int = 0,
 
+    val erroresValidacion: Map<String, String> = emptyMap(),
+
     // historial navegación
     val historial: List<Int> = emptyList(),
 
@@ -552,7 +554,7 @@ class SurveyViewModel @Inject constructor(
     // ─────────────────────────────────────────────────────────────────────────
     // PURGA
     // ─────────────────────────────────────────────────────────────────────────
-
+    
     private fun purgarRespuestasFantasmas(
         respuestas: MutableMap<String, Any?>
     ) {

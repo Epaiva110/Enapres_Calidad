@@ -12,7 +12,7 @@
           "label": "P1. ¿La supervisión se realizó durante el periodo de ejecución de la encuesta?",
           "options": [
             { "value": "1", "label": "Sí" },
-            { "value": "2", "label": "No", "jump_to_page": 2 }
+            { "value": "2", "label": "No", "jump_to_page": 1 }
           ]
         },
         {
@@ -21,7 +21,7 @@
           "label": "P2. ¿El encuestador se encontraba en el conglomerado?",
           "options": [
             { "value": "1", "label": "Sí" },
-            { "value": "2", "label": "No", "jump_to_page": 1 }
+            { "value": "2", "label": "No"}
           ]
         },
         {
@@ -32,23 +32,20 @@
             { "value": "1", "label": "Sí" },
             { "value": "2", "label": "No" }
           ]
-        }
-      ]
-    },
-    {
-      "id_pagina": 1,
-      "titulo": "Sección A: Justificación",
-      "preguntas": [
+        },
+
         {
           "variable": "P4",
           "type": "text",
           "label": "P4. ¿Por qué motivo no se encontraba el encuestador?",
-          "required": true
+          "required": true,
+          "show_if": { "variable": "P2", "operator": "eq", "value": "2" }
         }
+
       ]
     },
     {
-      "id_pagina": 2,
+      "id_pagina": 1,
       "titulo": "Sección B: Seguridad y Amenazas",
       "preguntas": [
         {
@@ -81,7 +78,7 @@
       ]
     },
     {
-      "id_pagina": 3,
+      "id_pagina": 2,
       "titulo": "Sección B: Cartografía I",
       "preguntas": [
         {
@@ -105,7 +102,7 @@
       ]
     },
     {
-      "id_pagina": 4,
+      "id_pagina": 3,
       "titulo": "Sección B: Cartografía II",
       "preguntas": [
         {
@@ -137,7 +134,7 @@
       ]
     },
     {
-      "id_pagina": 5,
+      "id_pagina": 4,
       "titulo": "Sección C: Socioeconomía y Cierre",
       "preguntas": [
         {

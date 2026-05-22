@@ -118,7 +118,7 @@ fun MainContent(
 
     // Usamos remember para que no lea el archivo cada vez que se recompone la pantalla
     val jsonFromAssets = remember {
-        context.assets.open("ejemplo_json.json").bufferedReader().use { it.readText() }
+        context.assets.open("survey_conglomerado.json").bufferedReader().use { it.readText() }
     }
 
     Box(modifier = modifier) {
