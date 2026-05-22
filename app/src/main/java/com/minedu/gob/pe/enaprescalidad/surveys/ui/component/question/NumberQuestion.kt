@@ -25,6 +25,7 @@ fun NumberQuestionField(
     value: Any?,
     isDecimal: Boolean,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     if (isDecimal) {
@@ -32,7 +33,8 @@ fun NumberQuestionField(
         DecimalQuestionField(
             pregunta = pregunta,
             value = value as? Double,
-            onValueChange = onValueChange
+            onValueChange = onValueChange,
+            editable = editable,
         )
 
     } else {
@@ -40,7 +42,8 @@ fun NumberQuestionField(
         IntegerQuestionField(
             pregunta = pregunta,
             value = value as? Int,
-            onValueChange = onValueChange
+            onValueChange = onValueChange,
+            editable = editable,
         )
     }
 }
@@ -50,6 +53,7 @@ fun IntegerQuestionField(
     pregunta: Pregunta,
     value: Int?,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     var text by remember {
@@ -99,6 +103,8 @@ fun IntegerQuestionField(
             ),
 
             singleLine = true,
+            readOnly = !editable,
+            enabled = editable,
 
             isError = hasError,
 
@@ -125,6 +131,7 @@ fun DecimalQuestionField(
     pregunta: Pregunta,
     value: Double?,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     var text by remember {
@@ -187,6 +194,8 @@ fun DecimalQuestionField(
             ),
 
             singleLine = true,
+            readOnly = !editable,
+            enabled = editable,
 
             isError = hasError,
 

@@ -358,6 +358,7 @@ fun GpsQuestion(
     pregunta     : Pregunta,
     rawValue     : String,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
     val locationData = remember(rawValue) { parseGpsValue(rawValue) }
     val tieneCoords  = locationData != null
@@ -376,14 +377,15 @@ fun GpsQuestion(
             locationData?.let { data ->
                 GpsCapturedPanel(
                     data    = data,
-                    onClear = { onValueChange(pregunta.variable, null) },
+                    onClear = { if (editable) onValueChange(pregunta.variable, null) },
                 )
             }
         }
 
         // ── Botón capturar / recapturar ───────────────────────────────────────
         Button(
-            onClick  = { showMapCapture = true },
+            onClick  = { if (editable) showMapCapture = true },
+            enabled  = editable,
             modifier = Modifier.fillMaxWidth(),
             shape    = RoundedCornerShape(10.dp),
             colors   = ButtonDefaults.buttonColors(

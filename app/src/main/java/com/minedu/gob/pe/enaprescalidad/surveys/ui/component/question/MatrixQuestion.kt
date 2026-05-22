@@ -1,6 +1,9 @@
 package com.minedu.gob.pe.enaprescalidad.surveys.ui.component.question
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +39,11 @@ import com.minedu.gob.pe.enaprescalidad.surveys.models.Pregunta
 
 @Composable
 fun MatrixQuestionAdapter(
-    pregunta    : Pregunta,
-    respuestas  : Map<String, Any?>,
-    onValueChange: (String, Any?) -> Unit,
+    pregunta         : Pregunta,
+    respuestas       : Map<String, Any?>,
+    variablesConError: Set<String> = emptySet(),
+    onValueChange    : (String, Any?) -> Unit,
+    editable         : Boolean = true,
 ) {
     // Columnas: para matrix_scale se generan numéricamente; para matrix se usan labels fijos
     val isScale = pregunta.type == "matrix_scale"
@@ -67,6 +73,8 @@ fun MatrixQuestionAdapter(
                 seleccion    = seleccion,
                 disabledCols = fila.disabled_if_cols ?: emptyList(),
                 isImpar      = esImpar,
+                tieneError   = subVar in variablesConError,
+                editable     = editable,
                 onSelect     = { col -> onValueChange(subVar, col) },
             )
 
@@ -81,7 +89,7 @@ fun MatrixQuestionAdapter(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     fila.detail_questions.forEach { sub ->
-                        DynamicQuestionAdapter(sub, respuestas, "", onValueChange)
+                        DynamicQuestionAdapter(sub, respuestas, "", variablesConError, editable, onValueChange)
                     }
                 }
             }
@@ -144,13 +152,23 @@ private fun MatrixRow(
     seleccion   : String,
     disabledCols: List<String>,
     isImpar     : Boolean,
+    tieneError  : Boolean = false,
+    editable    : Boolean = true,
     onSelect    : (String) -> Unit,
 ) {
     val colWeight = 1f / columnas.size
-    val bg = if (isImpar) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f) else Color.Transparent
+    val targetBg = when {
+        tieneError -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.18f)
+        isImpar    -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)
+        else       -> Color.Transparent
+    }
+    val bg by animateColorAsState(targetValue = targetBg, animationSpec = tween(300), label = "matrix_row_bg")
+    val borderMod = if (tieneError)
+        Modifier.border(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+    else Modifier
 
     Row(
-        modifier          = Modifier.fillMaxWidth().background(bg).padding(vertical = 2.dp),
+        modifier          = Modifier.fillMaxWidth().then(borderMod).background(bg).padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Label de fila
@@ -159,12 +177,13 @@ private fun MatrixRow(
             modifier = Modifier.width(140.dp).padding(horizontal = 8.dp),
             fontSize = 12.sp,
             lineHeight = 16.sp,
-            color    = MaterialTheme.colorScheme.onSurface,
+            color    = if (tieneError) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.onSurface,
         )
 
         // Botones de columna
         columnas.forEach { (value, _) ->
-            val deshabilitada = disabledCols.contains(value)
+            val deshabilitada = !editable || disabledCols.contains(value)
             val seleccionada  = seleccion == value
 
             Box(

@@ -40,6 +40,7 @@ fun RankingQuestion(
     pregunta    : Pregunta,
     valorActual : String,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
     val orden = remember(valorActual) {
         if (valorActual.isBlank()) {
@@ -97,7 +98,7 @@ fun RankingQuestion(
                             onClick  = {
                                 if (i > 0) { orden.swap(i, i - 1); onValueChange(pregunta.variable, orden.joinToString(",")) }
                             },
-                            enabled  = i > 0,
+                            enabled  = editable && i > 0,
                             modifier = Modifier.size(24.dp),
                         ) {
                             Icon(Icons.Default.KeyboardArrowUp, null, Modifier.size(16.dp))
@@ -106,7 +107,7 @@ fun RankingQuestion(
                             onClick  = {
                                 if (i < orden.lastIndex) { orden.swap(i, i + 1); onValueChange(pregunta.variable, orden.joinToString(",")) }
                             },
-                            enabled  = i < orden.lastIndex,
+                            enabled  = editable && i < orden.lastIndex,
                             modifier = Modifier.size(24.dp),
                         ) {
                             Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(16.dp))

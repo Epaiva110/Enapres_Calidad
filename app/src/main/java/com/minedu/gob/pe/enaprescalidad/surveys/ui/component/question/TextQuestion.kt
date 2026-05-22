@@ -52,7 +52,8 @@ fun TextQuestion(
     pregunta: Pregunta,
     value: Any?,
     mode: DateInputMode = DateInputMode.PickerOnly,
-    onValueChange: (String, Any?) -> Unit
+    onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     when (pregunta.type) {
@@ -61,7 +62,8 @@ fun TextQuestion(
             TextQuestionField(
                 pregunta = pregunta,
                 value = value as? String ?: "",
-                onValueChange = onValueChange
+                onValueChange = onValueChange,
+                editable = editable,
             )
         }
 
@@ -70,7 +72,8 @@ fun TextQuestion(
                 pregunta = pregunta,
                 value = value as? LocalDate,
                 mode = mode,
-                onValueChange = onValueChange
+                onValueChange = onValueChange,
+                editable = editable,
             )
         }
 
@@ -79,7 +82,8 @@ fun TextQuestion(
                 pregunta = pregunta,
                 value = value as? LocalTime,
                 mode = mode,
-                onValueChange = onValueChange
+                onValueChange = onValueChange,
+                editable = editable,
             )
         }
 
@@ -88,7 +92,8 @@ fun TextQuestion(
                 pregunta = pregunta,
                 value = value as? LocalDateTime,
                 mode = mode,
-                onValueChange = onValueChange
+                onValueChange = onValueChange,
+                editable = editable,
             )
         }
     }
@@ -102,7 +107,8 @@ fun TextQuestion(
 fun TextQuestionField(
     pregunta: Pregunta,
     value: String,
-    onValueChange: (String, Any?) -> Unit
+    onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     OutlinedTextField(
@@ -111,6 +117,9 @@ fun TextQuestionField(
         onValueChange = {
             onValueChange(pregunta.variable, it)
         },
+
+        readOnly = !editable,
+        enabled = editable,
 
         modifier = Modifier
             .fillMaxWidth()
@@ -159,7 +168,8 @@ fun DateQuestionField(
     pregunta: Pregunta,
     value: LocalDate?,
     mode: DateInputMode,
-    onValueChange: (String, Any?) -> Unit
+    onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     val context = LocalContext.current
@@ -229,7 +239,8 @@ fun DateQuestionField(
 
         modifier = Modifier.fillMaxWidth(),
 
-        readOnly = mode != DateInputMode.PickerOrManual,
+        readOnly = !editable || mode != DateInputMode.PickerOrManual,
+        enabled = editable,
 
         placeholder = {
             Text("dd/mm/aaaa")
@@ -266,7 +277,8 @@ fun TimeQuestionField(
     pregunta: Pregunta,
     value: LocalTime?,
     mode: DateInputMode,
-    onValueChange: (String, Any?) -> Unit
+    onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     val context = LocalContext.current
@@ -335,7 +347,8 @@ fun TimeQuestionField(
 
         modifier = Modifier.fillMaxWidth(),
 
-        readOnly = mode != DateInputMode.PickerOrManual,
+        readOnly = !editable || mode != DateInputMode.PickerOrManual,
+        enabled = editable,
 
         placeholder = {
             Text("hh:mm")
@@ -372,7 +385,8 @@ fun DateTimeQuestionField(
     pregunta: Pregunta,
     value: LocalDateTime?,
     mode: DateInputMode,
-    onValueChange: (String, Any?) -> Unit
+    onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
 
     val context = LocalContext.current
@@ -467,7 +481,8 @@ fun DateTimeQuestionField(
 
         modifier = Modifier.fillMaxWidth(),
 
-        readOnly = mode != DateInputMode.PickerOrManual,
+        readOnly = !editable || mode != DateInputMode.PickerOrManual,
+        enabled = editable,
 
         placeholder = {
             Text("dd/mm/aaaa hh:mm")

@@ -81,6 +81,7 @@ fun PhotoQuestion(
     pregunta     : Pregunta,
     fotosActuales: List<*>,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true
 ) {
     val context    = LocalContext.current
     val maxFotos   = pregunta.max_photos ?: 1
@@ -373,6 +374,7 @@ private fun FotoActionBar(
     puedeAnadir : Boolean,
     onCamera    : () -> Unit,
     onGallery   : () -> Unit,
+    editable: Boolean = true
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -425,7 +427,7 @@ private fun FotoActionBar(
                     if (!puedeAnadir) return@FilledTonalButton
                     if (allowGallery) showMenu = true else onCamera()
                 },
-                enabled  = puedeAnadir,
+                enabled  = editable && puedeAnadir,
                 shape    = RoundedCornerShape(10.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             ) {

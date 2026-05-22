@@ -5,6 +5,7 @@ import com.minedu.gob.pe.enaprescalidad.surveys.models.Pagina
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Survey
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.surveys.SurveyConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.surveys.SurveyConglomeradoEntity
+import com.minedu.gob.pe.enaprescalidad.surveys.SurveyCompletion
 import com.minedu.gob.pe.enaprescalidad.surveys.adapter.SurveyGson
 import com.minedu.gob.pe.enaprescalidad.surveys.models.ConditionEvaluator
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Pregunta
@@ -47,8 +48,10 @@ data class SurveyUiState(
     // observaciones
     val showObsDialog: Boolean = false,
 
+    // variables que fallaron validación (resaltar en rojo)
+    val variablesConError: Set<String> = emptySet(),
 
-) {
+    ) {
 //    val progreso: Float get() = if (totalPaginas == 0) 0f else (paginaActual + 1f) / totalPaginas
     // ─────────────────────────────────────────────────────────────────────────
     // PAGINA ACTUAL
@@ -307,55 +310,38 @@ class SurveyViewModel @Inject constructor(
         muestraId: Int,
         jsonString: String
     ) {
-
-        if (
-            this.muestraId == muestraId &&
-            _uiState.value.survey != null
-        ) return
+        if (this.muestraId == muestraId && _uiState.value.survey != null) {
+            return
+        }
 
         this.muestraId = muestraId
 
         viewModelScope.launch {
-
             _uiState.update {
-                it.copy(isLoading = true)
+                it.copy(isLoading = true, error = null)
             }
 
             try {
-
-                survey =
-                    SurveyGson.instance.fromJson(
-                        jsonString,
-                        Survey::class.java
-                    )
-
+                survey = SurveyGson.instance.fromJson(jsonString, Survey::class.java)
                 surveyId = survey.survey_id
 
-                _uiState.update {
-                    it.copy(survey = survey)
-                }
-
-                // ✅ SOLO CARGA INICIAL
-                val entidades =
-                    dao.obtenerRespuestasSincronas(
-                        muestraId,
-                        surveyId
-                    )
-
-                val mapa =
-                    entidades.associate {
-                        it.variable to deserializarValor(it.valor)
-                    }
+                val entidades = dao.obtenerRespuestasSincronas(muestraId, surveyId)
+                val mapa = entidades.associate { it.variable to deserializarValor(it.valor) }
 
                 _uiState.update {
                     it.copy(
+                        survey = survey,
                         respuestas = mapa,
-                        isLoading = false
+                        paginaActual = 0,
+                        historial = emptyList(),
+                        isCompleted = false,
+                        variablesConError = emptySet(),
+                        showObsDialog = false,
+                        error = null,
+                        isLoading = false,
                     )
                 }
-
             } catch (e: Exception) {
-
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -364,6 +350,10 @@ class SurveyViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumeCompleted() {
+        _uiState.update { it.copy(isCompleted = false) }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -394,8 +384,9 @@ class SurveyViewModel @Inject constructor(
 
     fun onUpdateAnswer(
         variable: String,
-        valor: Any?
+        valor: Any?,
     ) {
+        if (variable == SurveyCompletion.COMPLETED_VARIABLE) return
 
         val nuevas =
             _uiState.value.respuestas.toMutableMap()
@@ -409,7 +400,13 @@ class SurveyViewModel @Inject constructor(
         purgarRespuestasFantasmas(nuevas)
 
         _uiState.update {
-            it.copy(respuestas = nuevas)
+            // Quitar la variable del set de errores si ya fue respondida
+            val errorActualizado = if (variable in it.variablesConError && estaRespondida(nuevas[variable])) {
+                it.variablesConError - variable
+            } else {
+                it.variablesConError
+            }
+            it.copy(respuestas = nuevas, variablesConError = errorActualizado)
         }
 
         if (
@@ -554,7 +551,7 @@ class SurveyViewModel @Inject constructor(
     // ─────────────────────────────────────────────────────────────────────────
     // PURGA
     // ─────────────────────────────────────────────────────────────────────────
-    
+
     private fun purgarRespuestasFantasmas(
         respuestas: MutableMap<String, Any?>
     ) {
@@ -886,6 +883,97 @@ class SurveyViewModel @Inject constructor(
         return true
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // CALCULAR VARIABLES CON ERROR (para resaltar en rojo)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    fun calcularVariablesConError(): Set<String> {
+
+        val p = _uiState.value.pagina ?: return emptySet()
+        val resp = _uiState.value.respuestas
+        val errores = mutableSetOf<String>()
+
+        fun recolectarErrores(preg: Pregunta) {
+
+            if (preg.show_if != null && !evaluator.evaluate(preg.show_if, resp)) return
+
+            when (preg.type.lowercase()) {
+
+                "info" -> return
+
+                "matrix", "matrix_scale", "matrix_detail" -> {
+                    if (!preg.required) return
+                    preg.options?.forEach { fila ->
+                        val subVar = "${preg.variable}_${fila.variable ?: fila.value ?: ""}"
+                        if (!estaRespondida(resp[subVar])) errores.add(subVar)
+                        fila.detail_questions?.forEach { sub ->
+                            if (sub.required) recolectarErrores(sub)
+                        }
+                    }
+                }
+
+                "multiple", "multiple_binary" -> {
+                    if (!preg.required) return
+                    val lista = resp[preg.variable] as? List<*>
+                    if (lista == null || lista.isEmpty()) errores.add(preg.variable)
+                }
+
+                "gps" -> {
+                    if (!preg.required) return
+                    val gps = resp[preg.variable]?.toString() ?: ""
+                    if (!gps.contains("OMITIDO") && gps.isBlank()) errores.add(preg.variable)
+                }
+
+                else -> {
+                    if (preg.required && !estaRespondida(resp[preg.variable])) {
+                        errores.add(preg.variable)
+                    }
+                    // check detail_questions of selected options
+                    val valorPadre = resp[preg.variable]
+                    preg.options?.forEach { opcion ->
+                        val sel = when (valorPadre) {
+                            is List<*> -> valorPadre.map { it.toString() }.contains(opcion.value?.toString())
+                            else -> valorPadre?.toString() == opcion.value?.toString()
+                        }
+                        if (sel) {
+                            opcion.detail_questions?.forEach { sub ->
+                                if (sub.required) recolectarErrores(sub)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        p.preguntas.forEach { preg -> recolectarErrores(preg) }
+
+        val minObs = survey.config.min_caracteres_observacion
+        val obs = resp["OBS_${p.seccion_id}"]?.toString()?.trim() ?: ""
+        if (obs.length < minObs) errores.add("OBS_${p.seccion_id}")
+
+        return errores
+    }
+
+    private fun buildValidationErrorMessage(errores: Set<String>): String {
+        val p = _uiState.value.pagina ?: return "Completa todas las preguntas requeridas."
+        val minObs = survey.config.min_caracteres_observacion
+        val obsKey = "OBS_${p.seccion_id}"
+
+        val partes = mutableListOf<String>()
+        val preguntas = errores.filter { it != obsKey && !it.startsWith("OBS_") }
+        if (preguntas.isNotEmpty()) {
+            partes.add("preguntas requeridas pendientes")
+        }
+        if (obsKey in errores && minObs > 0) {
+            partes.add("observación de sección (mín. $minObs caracteres, ícono de notas o campo al final de la página)")
+        }
+        return if (partes.isEmpty()) {
+            "Completa todas las preguntas requeridas."
+        } else {
+            "Falta: ${partes.joinToString(" y ")}."
+        }
+    }
+
     private fun paginaEsValida(): Boolean {
 
         val p =
@@ -985,17 +1073,19 @@ class SurveyViewModel @Inject constructor(
 
     fun onNextPage() {
 
-        if (!paginaEsValida()) {
-
+        val errores = calcularVariablesConError()
+        if (errores.isNotEmpty()) {
             _uiState.update {
-
                 it.copy(
-                    error = "Completa todas las preguntas requeridas y la observación."
+                    error = buildValidationErrorMessage(errores),
+                    variablesConError = errores
                 )
             }
-
             return
         }
+
+        // Limpiar errores al avanzar exitosamente
+        _uiState.update { it.copy(variablesConError = emptySet()) }
 
         val state =
             _uiState.value
@@ -1031,14 +1121,14 @@ class SurveyViewModel @Inject constructor(
             }
 
             viewModelScope.launch {
-
-                guardarTodoEnRoom(
-                    _uiState.value.respuestas
-                )
+                val respuestasFinal = _uiState.value.respuestas.toMutableMap().apply {
+                    put(SurveyCompletion.COMPLETED_VARIABLE, true)
+                }
+                guardarTodoEnRoom(respuestasFinal)
 
                 _uiState.update {
-
                     it.copy(
+                        respuestas = respuestasFinal,
                         isSaving = false,
                         isCompleted = true
                     )
@@ -1057,6 +1147,35 @@ class SurveyViewModel @Inject constructor(
                 it.copy(
                     paginaActual = nuevaPosicion,
                     historial = it.historial + it.paginaActual,
+                )
+            }
+        }
+    }
+
+    // Navegar sin validación (modo solo lectura)
+    fun onNextPageReadOnly() {
+
+        val state = _uiState.value
+        val pag   = state.pagina ?: return
+
+        val paginasVisibles = calcularPaginasVisibles().toList().sorted()
+
+        val idxActual = survey.paginas.indexOfFirst { it.id_pagina == pag.id_pagina }
+
+        val siguienteId = paginasVisibles.firstOrNull { id ->
+            val idx = survey.paginas.indexOfFirst { it.id_pagina == id }
+            idx > idxActual
+        }
+
+        if (siguienteId == null) {
+            // Última página en modo lectura → simplemente completar para salir
+            _uiState.update { it.copy(isCompleted = true) }
+        } else {
+            val nuevaPosicion = survey.paginas.indexOfFirst { it.id_pagina == siguienteId }
+            _uiState.update {
+                it.copy(
+                    paginaActual = nuevaPosicion,
+                    historial    = it.historial + it.paginaActual,
                 )
             }
         }
@@ -1180,11 +1299,8 @@ class SurveyViewModel @Inject constructor(
     private suspend fun guardarTodoEnRoom(
         mapa: Map<String, Any?>
     ) {
-
         dao.upsertAll(
-
             mapa.map { (k, v) ->
-
                 SurveyConglomeradoEntity(
                     muestraId,
                     surveyId,

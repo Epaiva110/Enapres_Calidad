@@ -28,6 +28,7 @@ fun SliderQuestion(
     pregunta    : Pregunta,
     valor       : Float,
     onValueChange: (String, Any?) -> Unit,
+    editable    : Boolean = true,
 ) {
     val min   = pregunta.min_value?.toFloat() ?: 0f
     val max   = pregunta.max_value?.toFloat() ?: 100f
@@ -65,6 +66,7 @@ fun SliderQuestion(
             onValueChange = { onValueChange(pregunta.variable, it) },
             valueRange   = min..max,
             steps        = steps.coerceAtLeast(0),
+            enabled      = editable,
             modifier     = Modifier.fillMaxWidth(),
         )
 

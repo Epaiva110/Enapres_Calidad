@@ -2,8 +2,12 @@ package com.minedu.gob.pe.enaprescalidad.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.surveys.SurveyConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEntity
 import com.minedu.gob.pe.enaprescalidad.data.repository.ConglomeradoListRepository
+import com.minedu.gob.pe.enaprescalidad.surveys.SurveyEncuestaProgress
+import com.minedu.gob.pe.enaprescalidad.surveys.SurveyProgressHelper
+import com.minedu.gob.pe.enaprescalidad.surveys.catalog.ConglomeradoSurveyCatalog
 import com.minedu.gob.pe.enaprescalidad.data.repository.EnvioResult
 import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +33,8 @@ import java.util.Objects
 class ConglomeradoViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
     private val repo: ConglomeradoListRepository,
+    private val surveyDao: SurveyConglomeradoDao,
+    private val surveyCatalog: ConglomeradoSurveyCatalog,
     private val savedState: SavedStateHandle,
 ) : ViewModel(), ConglomeradoActions {
 
@@ -142,7 +148,53 @@ class ConglomeradoViewModel @Inject constructor(
         viewModelScope.launch {
             repo.getMuestraFiltrada(u, a, m, p, pr)
                 .catch { e -> _uiState.update { it.copy(error = e.message, isLoadingMuestras = false) } }
-                .collect { list -> _uiState.update { it.copy(muestras = list, isLoadingMuestras = false) } }
+                .collect { list ->
+                    val progreso = cargarProgresoEncuestas(list.map { it.id })
+                    _uiState.update {
+                        it.copy(
+                            muestras = list,
+                            isLoadingMuestras = false,
+                            progresoEncuestas = progreso,
+                        )
+                    }
+                }
+        }
+    }
+
+    private suspend fun cargarProgresoEncuestas(
+        muestraIds: List<Int>,
+    ): Map<Int, SurveyEncuestaProgress> {
+        if (muestraIds.isEmpty()) return emptyMap()
+
+        val survey = surveyCatalog.survey
+        val surveyId = surveyCatalog.surveyId
+        val entidades = surveyDao.obtenerRespuestasPorMuestras(muestraIds, surveyId)
+        val porMuestra = entidades.groupBy { it.muestra_id }
+
+        return muestraIds.associateWith { id ->
+            val mapa = porMuestra[id].orEmpty().associate { row ->
+                row.variable to deserializarValorEncuesta(row.valor)
+            }
+            SurveyProgressHelper.computeProgress(survey, mapa)
+        }
+    }
+
+    private fun deserializarValorEncuesta(raw: String): Any? {
+        if (raw.isBlank()) return null
+        return try {
+            com.minedu.gob.pe.enaprescalidad.surveys.adapter.SurveyGson.instance
+                .fromJson(raw, Any::class.java)
+        } catch (_: Exception) {
+            raw
+        }
+    }
+
+    fun refreshProgresoEncuestas() {
+        val ids = _uiState.value.muestras.map { it.id }
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            val progreso = cargarProgresoEncuestas(ids)
+            _uiState.update { it.copy(progresoEncuestas = progreso) }
         }
     }
 
@@ -203,6 +255,7 @@ interface ConglomeradoActions {
 }
 
 data class ConglomeradoUiState(
+    val progresoEncuestas: Map<Int, SurveyEncuestaProgress> = emptyMap(),
     val anios: List<Int> = emptyList(),
     val meses: List<Int> = emptyList(),
     val periodos: List<Int> = emptyList(),

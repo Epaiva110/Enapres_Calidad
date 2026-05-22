@@ -16,6 +16,7 @@ fun SingleChoiceQuestion(
     valorActual  : Any?,
     respuestas   : Map<String, Any?>,
     onValueChange: (String, Any?) -> Unit,
+    editable     : Boolean = true,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         pregunta.options?.forEach { opcion ->
@@ -24,11 +25,12 @@ fun SingleChoiceQuestion(
                 label       = opcion.label,
                 selected    = seleccionado,
                 type        = ChoiceType.RADIO,
+                disabled    = !editable,
                 onClick     = { onValueChange(pregunta.variable, opcion.value) },
             )
             // Subpreguntas en cascada
             AnimatedVisibility(visible = seleccionado && !opcion.detail_questions.isNullOrEmpty()) {
-                SubQuestionsBlock(opcion, respuestas, onValueChange)
+                SubQuestionsBlock(opcion, respuestas, onValueChange, editable)
             }
         }
         // Opción "Otro (especifique)"
@@ -36,7 +38,7 @@ fun SingleChoiceQuestion(
             val otroVal = valorActual?.toString()
             val selOtro = pregunta.options?.none { it.value?.toString() == otroVal } == true && otroVal != null
             OtroRow(seleccionado = selOtro, variable = pregunta.variable,
-                respuestas = respuestas, onValueChange = onValueChange, isRadio = true)
+                respuestas = respuestas, onValueChange = onValueChange, isRadio = true, editable = editable)
         }
     }
 }

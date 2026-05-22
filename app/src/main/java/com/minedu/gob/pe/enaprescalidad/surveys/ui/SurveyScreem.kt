@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import com.minedu.gob.pe.enaprescalidad.surveys.models.ConditionEvaluator
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Pagina
 import com.minedu.gob.pe.enaprescalidad.surveys.viewmodel.SurveyViewModel
@@ -38,6 +39,7 @@ fun SurveyScreen(
     muestraId: Int,
     jsonString: String,
     onNavigateBack: () -> Unit,
+    soloLectura: Boolean = false,
     viewModel: SurveyViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,7 +51,10 @@ fun SurveyScreen(
     }
 
     LaunchedEffect(uiState.isCompleted) {
-        if (uiState.isCompleted) onNavigateBack()
+        if (uiState.isCompleted) {
+            viewModel.consumeCompleted()
+            onNavigateBack()
+        }
     }
 
     LaunchedEffect(uiState.error) {
@@ -92,14 +97,16 @@ fun SurveyScreen(
         )
     }
 
-    val onUpdateAnswer = remember(viewModel) {
-        { v: String, value: Any? ->
-            viewModel.onUpdateAnswer(v, value)
+    val onUpdateAnswer: (String, Any?) -> Unit = if (soloLectura) {
+        { _, _ -> }
+    } else {
+        remember(viewModel) {
+            { v: String, value: Any? -> viewModel.onUpdateAnswer(v, value) }
         }
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+//        contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             SurveyTopBar(
@@ -110,6 +117,7 @@ fun SurveyScreen(
                 progresoProvider = { uiState.progreso(paginasVisibles) },
                 isSaving = uiState.isSaving,
                 obsValida = uiState.obsValida,
+                soloLectura = soloLectura,
                 onObsClick = { viewModel.openObsDialog() },
                 onGuardarClick = { viewModel.onGuardar() },
                 onCloseWindowClick = onNavigateBack
@@ -120,9 +128,10 @@ fun SurveyScreen(
                 isFirstPage = uiState.historial.isEmpty(),
                 isLastPage = uiState.isLastPage,
                 isSaving = uiState.isSaving,
+                soloLectura = soloLectura,
                 onBackPageClick = { viewModel.onBackPage() },
-                onNextPageClick = { viewModel.onNextPage() },
-                paginaActualInfo ="${indicePagina + 1}/${uiState.totalPaginas}"
+                onNextPageClick = { if (!soloLectura) viewModel.onNextPage() else viewModel.onNextPageReadOnly() },
+                paginaActualInfo = "${indicePagina + 1}/${uiState.totalPaginas}",
             )
         }
     ) { padding ->
@@ -131,10 +140,13 @@ fun SurveyScreen(
             totalPaginas = survey.paginas.size,
             paginaActual = paginaActualObj,
             respuestas = uiState.respuestas,
-            variableEnFoco = uiState.obtenerVariableEnFoco(viewModel.evaluator), // Puede ser String?
+            variableEnFoco = uiState.obtenerVariableEnFoco(viewModel.evaluator),
+            variablesConError = uiState.variablesConError,
             evaluator = viewModel.evaluator,
+            minObsCaracteres = survey.config.min_caracteres_observacion,
+            soloLectura = soloLectura,
             onUpdateAnswer = onUpdateAnswer,
-            modifier = Modifier.padding(padding) // Sigue pasando el padding para no superponerse con las barras fijas
+            modifier = Modifier.padding(padding)
         )
     }
 }
@@ -146,8 +158,11 @@ fun SurveyContent(
     totalPaginas: Int,
     paginaActual: Pagina,
     respuestas: Map<String, Any?>,
-    variableEnFoco: String, // Ajustado a Nullable por seguridad
+    variableEnFoco: String,
+    variablesConError: Set<String> = emptySet(),
     evaluator: ConditionEvaluator,
+    minObsCaracteres: Int = 0,
+    soloLectura: Boolean = false,
     onUpdateAnswer: (String, Any?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -171,7 +186,10 @@ fun SurveyContent(
             pagina = paginaActual,
             respuestas = respuestas,
             variableEnFoco = variableEnFoco,
+            variablesConError = variablesConError,
             evaluator = evaluator,
+            minObsCaracteres = minObsCaracteres,
+            soloLectura = soloLectura,
             onUpdateAnswer = onUpdateAnswer,
         )
     }
@@ -187,6 +205,7 @@ fun SurveyTopBar(
     progresoProvider: () -> Float,
     isSaving: Boolean,
     obsValida: Boolean,
+    soloLectura: Boolean = false,
     onObsClick: () -> Unit,
     onGuardarClick: () -> Unit,
     onCloseWindowClick: () -> Unit,
@@ -238,9 +257,19 @@ fun SurveyTopBar(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (soloLectura) {
+                        Text(
+                            text = "SOLO LECTURA",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+                        )
+                    }
                 }
                 IconButton(
                     onClick = onObsClick,
+                    enabled = !soloLectura,
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
@@ -256,7 +285,7 @@ fun SurveyTopBar(
                 }
                 IconButton(
                     onClick = onGuardarClick,
-                    enabled = !isSaving,
+                    enabled = !isSaving && !soloLectura,
                     modifier = Modifier.size(40.dp)
                 ) {
                     if (isSaving) {
@@ -302,24 +331,31 @@ fun SurveyTopBar(
     }
 }
 
+//@Preview (showBackground = true, showSystemUi = true)
+//@Composable
+//fun Prueba () {
+//    SurveyBottomBar("5", true, false, false,false,{},{})
+//}
+
 @Composable
 fun SurveyBottomBar(
     paginaActualInfo: String,
     isFirstPage: Boolean,
     isLastPage: Boolean,
     isSaving: Boolean,
+    soloLectura: Boolean = false,
     onBackPageClick: () -> Unit,
     onNextPageClick: () -> Unit,
 ) {
     Surface(
         tonalElevation = 6.dp,
         shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -382,7 +418,7 @@ fun SurveyBottomBar(
                     .padding(horizontal = 2.dp),
                 contentAlignment = Alignment.CenterEnd,
 
-            ) {
+                ) {
                 Button(
                     onClick = onNextPageClick,
                     enabled = !isSaving,
@@ -394,14 +430,14 @@ fun SurveyBottomBar(
                     ),
                     contentPadding = PaddingValues(horizontal = 10.dp),
 
-                ) {
+                    ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
 
-                    ) {
+                        ) {
                         Text(
-                            text = if (isLastPage) "FINALIZAR" else "SIGUIENTE",
+                            text = if (isLastPage) (if (soloLectura) "CERRAR" else "FINALIZAR") else "SIGUIENTE",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp

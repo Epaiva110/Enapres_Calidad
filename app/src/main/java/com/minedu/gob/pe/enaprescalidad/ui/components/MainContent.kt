@@ -101,24 +101,68 @@ import com.minedu.gob.pe.enaprescalidad.ui.screens.main.features.verification.co
 // ─────────────────────────────────────────────────────────────────────────────
 
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.minedu.gob.pe.enaprescalidad.surveys.ui.SurveyScreen
+import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoViewModel
 import com.minedu.gob.pe.enaprescalidad.ui.components.maps.MapScreen
+
+// Datos de navegación hacia el survey de conglomerado
+data class SurveyNavState(
+    val muestraId: Int,
+    val soloLectura: Boolean,
+)
+
+private val SurveyNavStateSaver = Saver<SurveyNavState?, List<Any?>>(
+    save = { state ->
+        if (state == null) emptyList()
+        else listOf(state.muestraId, state.soloLectura)
+    },
+    restore = { saved ->
+        if (saved.isEmpty()) null
+        else SurveyNavState(
+            muestraId = saved[0] as Int,
+            soloLectura = saved[1] as Boolean,
+        )
+    },
+)
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun MainContent(
     selectedItemId: String,
     modifier: Modifier = Modifier,
+    onSurveyActiveChange: (Boolean) -> Unit = {},
+    onSurveyClosed: () -> Unit = {},
 ) {
-
+    val conglomeradoViewModel: ConglomeradoViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    // Usamos remember para que no lea el archivo cada vez que se recompone la pantalla
-    val jsonFromAssets = remember {
+    // JSON de la encuesta de conglomerado (se lee una sola vez)
+    val jsonConglomerado = remember {
         context.assets.open("survey_conglomerado.json").bufferedReader().use { it.readText() }
+    }
+
+    // Estado de navegación interna hacia el survey de conglomerado.
+    // null = mostrar lista de conglomerados; non-null = mostrar survey.
+    // rememberSaveable: conserva la encuesta abierta al rotar la pantalla
+    var surveyNav by rememberSaveable(
+        inputs = arrayOf(selectedItemId),
+        stateSaver = SurveyNavStateSaver,
+    ) { mutableStateOf<SurveyNavState?>(null) }
+
+    LaunchedEffect(surveyNav, selectedItemId) {
+        onSurveyActiveChange(
+            selectedItemId == NavIds.CONGLOMERADO && surveyNav != null
+        )
     }
 
     Box(modifier = modifier) {
@@ -132,24 +176,45 @@ fun MainContent(
             },
         ) { itemId ->
 
-
-            // key() garantiza que cada pantalla tenga su propia instancia de ViewModel.
-            // Al cambiar itemId, el ViewModel anterior se destruye (onCleared) y se crea uno nuevo.
-            // Al rotar, itemId no cambia → el ViewModel sobrevive con SavedStateHandle.
             key(itemId) {
                 when (itemId) {
-                    NavIds.HOME -> HomeScreen()
+                    NavIds.HOME        -> HomeScreen()
                     NavIds.ANALYTICS   -> AnalyticsScreen()
                     NavIds.SETTINGS    -> SettingsScreen()
                     NavIds.CARGA_MARCO -> UpdateScreen()
-                    NavIds.CONGLOMERADO -> ConglomeradoScreen(
-                        onNavigateCuestionario = { muestraId ->
-                            // TODO: navegar al cuestionario pasando muestraId
+
+                    NavIds.CONGLOMERADO -> {
+                        val nav = surveyNav
+                        if (nav == null) {
+                            // ── Lista de conglomerados ──────────────────────
+                            ConglomeradoScreen(
+                                onNavigateCuestionario = { muestraId ->
+                                    surveyNav = SurveyNavState(muestraId, soloLectura = false)
+                                },
+                                onLeerCuestionario = { muestraId ->
+                                    surveyNav = SurveyNavState(muestraId, soloLectura = true)
+                                }
+                            )
+                        } else {
+                            // ── Survey del conglomerado (pantalla propia, sin TopBar principal) ──
+                            key(nav.muestraId, nav.soloLectura) {
+                                SurveyScreen(
+                                    muestraId = nav.muestraId,
+                                    jsonString = jsonConglomerado,
+                                    soloLectura = nav.soloLectura,
+                                    onNavigateBack = {
+                                        surveyNav = null
+                                        conglomeradoViewModel.refreshProgresoEncuestas()
+                                        onSurveyClosed()
+                                    },
+                                )
+                            }
                         }
-                    )
-                    NavIds.VIVIENDA -> SurveyScreen(101, jsonFromAssets, {})
+                    }
+
+                    NavIds.VIVIENDA     -> SurveyScreen(101, jsonConglomerado, onNavigateBack = {})
                     NavIds.REENTREVISTA -> MapScreen()
-                    else          -> MaintanceScren(Routes.Login)
+                    else                -> MaintanceScren(Routes.Login)
                 }
             }
         }

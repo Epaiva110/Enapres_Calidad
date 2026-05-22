@@ -17,6 +17,7 @@ fun MultipleChoiceQuestion(
     listaSeleccionada: List<*>,
     respuestas      : Map<String, Any?>,
     onValueChange   : (String, Any?) -> Unit,
+    editable        : Boolean = true,
 ) {
     val items = listaSeleccionada.map { it.toString() }
 
@@ -29,7 +30,7 @@ fun MultipleChoiceQuestion(
                 label    = opcion.label,
                 selected = marcado,
                 type     = ChoiceType.CHECKBOX,
-                disabled = opcion.disabled_if_cols?.let { cols -> items.any { it in cols } } == true,
+                disabled = !editable || opcion.disabled_if_cols?.let { cols -> items.any { it in cols } } == true,
                 onClick  = {
                     val lista = items.toMutableList()
                     if (marcado) {
@@ -43,7 +44,7 @@ fun MultipleChoiceQuestion(
                 },
             )
             AnimatedVisibility(visible = marcado && !opcion.detail_questions.isNullOrEmpty()) {
-                SubQuestionsBlock(opcion, respuestas, onValueChange)
+                SubQuestionsBlock(opcion, respuestas, onValueChange, editable)
             }
         }
         if (pregunta.allow_other == true) {
@@ -51,7 +52,7 @@ fun MultipleChoiceQuestion(
             val otroVal = respuestas[otroKey]?.toString() ?: ""
             val selOtro = items.contains("__otro__")
             OtroRow(seleccionado = selOtro, variable = pregunta.variable,
-                respuestas = respuestas, onValueChange = onValueChange, isRadio = false)
+                respuestas = respuestas, onValueChange = onValueChange, isRadio = false, editable = editable)
         }
     }
 }

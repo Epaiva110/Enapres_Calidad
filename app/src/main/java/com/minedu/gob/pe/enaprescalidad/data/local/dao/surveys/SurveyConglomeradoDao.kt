@@ -42,4 +42,13 @@ interface SurveyConglomeradoDao {
 
     @Query("SELECT * FROM Survey_Conglomerado WHERE muestra_id = :muestraId AND survey_id = :surveyId")
     suspend fun obtenerRespuestasSincronas(muestraId: Int, surveyId: String): List<SurveyConglomeradoEntity>
+
+    @Query("""
+        SELECT * FROM Survey_Conglomerado
+        WHERE survey_id = :surveyId AND muestra_id IN (:muestraIds)
+    """)
+    suspend fun obtenerRespuestasPorMuestras(
+        muestraIds: List<Int>,
+        surveyId: String,
+    ): List<SurveyConglomeradoEntity>
 }

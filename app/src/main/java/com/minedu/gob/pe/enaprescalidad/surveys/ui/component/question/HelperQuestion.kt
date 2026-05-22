@@ -83,6 +83,7 @@ fun SubQuestionsBlock(
     opcion      : SurveyOption,
     respuestas  : Map<String, Any?>,
     onValueChange: (String, Any?) -> Unit,
+    editable: Boolean = true,
 ) {
     Column(
         modifier = Modifier
@@ -97,6 +98,7 @@ fun SubQuestionsBlock(
                 pregunta       = sub,
                 respuestas     = respuestas,
                 variableEnFoco = "",
+                editable       = editable,
                 onValueChange  = onValueChange,
             )
         }
@@ -110,6 +112,7 @@ fun OtroRow(
     respuestas  : Map<String, Any?>,
     onValueChange: (String, Any?) -> Unit,
     isRadio     : Boolean,
+    editable: Boolean = true,
 ) {
     val otroKey = "${variable}_otro"
     val texto   = respuestas[otroKey]?.toString() ?: ""
@@ -119,12 +122,15 @@ fun OtroRow(
             label    = "Otro (especifique)",
             selected = seleccionado,
             type     = if (isRadio) ChoiceType.RADIO else ChoiceType.CHECKBOX,
+            disabled = !editable,
             onClick  = { onValueChange("${variable}_otro_sel", "__otro__") },
         )
         AnimatedVisibility(visible = seleccionado) {
             OutlinedTextField(
                 value         = texto,
                 onValueChange = { onValueChange(otroKey, it) },
+                readOnly = !editable,
+                enabled = editable,
                 modifier      = Modifier.fillMaxWidth().padding(start = 32.dp, top = 4.dp),
                 placeholder   = { Text("Especifique…", fontSize = 12.sp) },
                 singleLine    = true,

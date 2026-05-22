@@ -43,15 +43,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.minedu.gob.pe.enaprescalidad.ui.components.NavIds
 import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreMes
 import com.minedu.gob.pe.enaprescalidad.utils.obtenerNombreProyecto
+import com.minedu.gob.pe.enaprescalidad.surveys.SurveyEncuestaProgress
+import com.minedu.gob.pe.enaprescalidad.surveys.SurveyEncuestaStatus
 import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoActions
 import com.minedu.gob.pe.enaprescalidad.viewmodel.ConglomeradoUiState
-import java.util.Objects
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConglomeradoScreen(
     onNavigateCuestionario: (Int) -> Unit,
+    onLeerCuestionario: (Int) -> Unit = {},
     viewModel: ConglomeradoViewModel = hiltViewModel(),
     viewModelLogin: LoginViewModel = hiltViewModel()
 ) {
@@ -69,6 +71,10 @@ fun ConglomeradoScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshProgresoEncuestas()
+    }
+
     HandleUiEffects(uiState, snackbarHostState, viewModel)
 
     Scaffold(
@@ -79,6 +85,7 @@ fun ConglomeradoScreen(
             uiState = uiState,
             actions = viewModel,
             onNavigate = onNavigateCuestionario,
+            onLeer = onLeerCuestionario,
             userId = userId,
             modifier = Modifier.padding(padding)
         )
@@ -110,10 +117,12 @@ fun ConglomeradoContent(
     uiState: ConglomeradoUiState,
     actions: ConglomeradoActions,
     onNavigate: (Int) -> Unit,
+    onLeer: (Int) -> Unit = {},
     userId: String,
     modifier: Modifier = Modifier
 ) {
     var showHistorial by remember { mutableStateOf(false) }
+    var muestraParaAccion by remember { mutableStateOf<MuestraConglomeradoEntity?>(null) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -148,13 +157,14 @@ fun ConglomeradoContent(
                         muestra = muestra,
                         index = index,
                         modoSeleccion = uiState.modoSeleccion,
+                        encuestaProgreso = uiState.progresoEncuestas[muestra.id],
                         isSeleccionado = muestra.id in uiState.seleccionados,
                         isSending = uiState.isSending,
                         onToggle = { actions.toggleSeleccion(muestra.id) },
                         onEnviarUna = { actions.onEnviarTodas(false) /* Ajustar a onEnviarUna si existe */ },
                         onClickFila = {
                             if (uiState.modoSeleccion) actions.toggleSeleccion(muestra.id)
-                            else onNavigate(muestra.id)
+                            else muestraParaAccion = muestra
                         }
                     )
                 }
@@ -171,9 +181,23 @@ fun ConglomeradoContent(
     if (showHistorial) {
         UltimaFechaDialog(fecha = uiState.ultimaFechaEnvio, onDismiss = { showHistorial = false })
     }
-}
 
-@Preview
+    muestraParaAccion?.let { muestra ->
+        AccionConglomeradoDialog(
+            muestra = muestra,
+            onIniciarEncuesta = {
+                muestraParaAccion = null
+                onNavigate(muestra.id)
+            },
+            onLeerEncuesta = {
+                muestraParaAccion = null
+                onLeer(muestra.id)
+            },
+            onDismiss = { muestraParaAccion = null }
+        )
+    }
+}
+//
 @Composable
 fun EmptyStateComponent() {
     Column(
@@ -372,7 +396,7 @@ private fun CongTableHeader(modoSeleccion: Boolean) {
         if (modoSeleccion) Spacer(Modifier.width(COL_CHECK))
         Text("Id", Modifier.weight(COL_ID), style = style)
         Text("Conglomerado", Modifier.weight(COL_CONG), style = style)
-        Text("Estado", Modifier.weight(COL_STATUS), style = style)
+        Text("Encuesta", Modifier.weight(COL_STATUS), style = style)
         if (!modoSeleccion) Spacer(Modifier.width(COL_ACTION))
     }
 }
@@ -389,6 +413,7 @@ fun CongRow(
     muestra: MuestraConglomeradoEntity,
     index: Int,
     modoSeleccion: Boolean,
+    encuestaProgreso: SurveyEncuestaProgress? = null,
     isSeleccionado: Boolean,
     isSending: Boolean,
     onToggle: () -> Unit,
@@ -467,7 +492,7 @@ fun CongRow(
             Column(
                 modifier = Modifier
                     .weight(COL_CONG)
-                    //.padding(horizontal = 6.dp)
+                //.padding(horizontal = 6.dp)
             ) {
 
                 Text(
@@ -498,9 +523,7 @@ fun CongRow(
                 contentAlignment = Alignment.Center,
             ) {
 
-                SyncStatusPill(
-                    sincronizado = muestra.sincronizado
-                )
+                EncuestaStatusPill(progreso = encuestaProgreso)
             }
 
             // =====================================
@@ -554,6 +577,59 @@ fun CongRow(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EncuestaStatusPill(
+    progreso: SurveyEncuestaProgress?,
+    modifier: Modifier = Modifier,
+) {
+    val status = progreso?.status ?: SurveyEncuestaStatus.NOT_STARTED
+    val percent = progreso?.percent ?: 0
+
+    val (backgroundColor, contentColor, label) = when (status) {
+        SurveyEncuestaStatus.COMPLETED -> Triple(
+            Color(0xFFDCFCE7),
+            Color(0xFF166534),
+            "Completada"
+        )
+        SurveyEncuestaStatus.IN_PROGRESS -> Triple(
+            Color(0xFFFEF3C7),
+            Color(0xFF92400E),
+            "En curso $percent%"
+        )
+        SurveyEncuestaStatus.NOT_STARTED -> Triple(
+            Color.Transparent,
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            "Sin iniciar"
+        )
+    }
+
+    if (status == SurveyEncuestaStatus.NOT_STARTED) {
+        Text(
+            text = label,
+            modifier = modifier,
+            style = MaterialTheme.typography.labelSmall,
+            color = contentColor,
+            textAlign = TextAlign.Center,
+        )
+        return
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = backgroundColor,
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = contentColor,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -674,4 +750,72 @@ fun AccionesSection(
             }
         }
     }
+}
+
+@Composable
+fun AccionConglomeradoDialog(
+    muestra: MuestraConglomeradoEntity,
+    onIniciarEncuesta: () -> Unit,
+    onLeerEncuesta: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(Icons.Default.Dataset, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        },
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = muestra.conglomerado,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = muestra.odeienapres,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "¿Qué deseas hacer con este conglomerado?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Button(
+                    onClick = onIniciarEncuesta,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Iniciar encuesta", fontWeight = FontWeight.SemiBold)
+                }
+                OutlinedButton(
+                    onClick = onLeerEncuesta,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Leer encuesta", fontWeight = FontWeight.SemiBold)
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
 }

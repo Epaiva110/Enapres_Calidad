@@ -37,6 +37,7 @@ fun LikertQuestion(
     pregunta    : Pregunta,
     valor       : Any?,
     onValueChange: (String, Any?) -> Unit,
+    editable    : Boolean = true,
 ) {
     val total    = pregunta.likert_count ?: 5
     val tipo     = pregunta.likert_type ?: "stars"
@@ -48,9 +49,9 @@ fun LikertQuestion(
         modifier = Modifier.fillMaxWidth(),
     ) {
         when (tipo) {
-            "stars" -> LikertEstrellas(total, seleccion) { onValueChange(pregunta.variable, it.toString()) }
-            "smiley" -> LikertSmiley(total, seleccion) { onValueChange(pregunta.variable, it.toString()) }
-            else -> LikertNumericos(total, seleccion) { onValueChange(pregunta.variable, it.toString()) }
+            "stars" -> LikertEstrellas(total, seleccion, editable) { onValueChange(pregunta.variable, it.toString()) }
+            "smiley" -> LikertSmiley(total, seleccion, editable) { onValueChange(pregunta.variable, it.toString()) }
+            else -> LikertNumericos(total, seleccion, editable) { onValueChange(pregunta.variable, it.toString()) }
         }
 
         // Labels extremos
@@ -66,7 +67,7 @@ fun LikertQuestion(
 }
 
 @Composable
-private fun LikertEstrellas(total: Int, seleccion: Int?, onSelect: (Int) -> Unit) {
+private fun LikertEstrellas(total: Int, seleccion: Int?, editable: Boolean, onSelect: (Int) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         for (i in 1..total) {
             val activa = seleccion != null && i <= seleccion
@@ -83,13 +84,14 @@ private fun LikertEstrellas(total: Int, seleccion: Int?, onSelect: (Int) -> Unit
 }
 
 @Composable
-private fun LikertSmiley(total: Int, seleccion: Int?, onSelect: (Int) -> Unit) {
+private fun LikertSmiley(total: Int, seleccion: Int?, editable: Boolean, onSelect: (Int) -> Unit) {
     val emojis = listOf("😡","😞","😐","😊","😄")
     Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
         for (i in 1..total) {
             val activa = seleccion == i
             Surface(
                 onClick = { onSelect(i) },
+                enabled = editable,
                 shape   = CircleShape,
                 color   = if (activa) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
                 modifier = Modifier.size(48.dp),
@@ -103,7 +105,7 @@ private fun LikertSmiley(total: Int, seleccion: Int?, onSelect: (Int) -> Unit) {
 }
 
 @Composable
-private fun LikertNumericos(total: Int, seleccion: Int?, onSelect: (Int) -> Unit) {
+private fun LikertNumericos(total: Int, seleccion: Int?, editable: Boolean, onSelect: (Int) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth(),
@@ -112,6 +114,7 @@ private fun LikertNumericos(total: Int, seleccion: Int?, onSelect: (Int) -> Unit
             val activo = seleccion == i
             Surface(
                 onClick = { onSelect(i) },
+                enabled = editable,
                 shape   = RoundedCornerShape(8.dp),
                 color   = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 border  = if (!activo) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
