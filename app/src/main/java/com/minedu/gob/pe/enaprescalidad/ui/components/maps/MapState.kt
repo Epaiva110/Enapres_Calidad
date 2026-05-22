@@ -19,8 +19,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.minedu.gob.pe.enaprescalidad.utils.isAirplaneMode
@@ -31,45 +33,54 @@ import com.minedu.gob.pe.enaprescalidad.utils.requestGpsEnable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// ── Contrato público que MapScreen consume ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Contrato público — lo consumen GoogleMapBase, MapScreen y ManualMarkerMap
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Stable
 class MapState(
+    // Estado del ViewModel
     val uiState: MapUiState,
+    // Estado de la cámara compartido entre modos
     val cameraPositionState: CameraPositionState,
+    // Permisos
     val permisosOtorgados: Boolean,
-    // Acciones que la UI dispara
+    val canShowNativePermissionDialog: Boolean,
+    // Acciones de hardware (GPS / avión / permisos)
     val onRequestGps: () -> Unit,
     val onCenterCamera: () -> Unit,
-    val onRecalculate: () -> Unit,
-    val onLocationAccepted: (LocationData) -> Unit,
     val onAllowPermission: () -> Unit,
     val onGoToSettingsPermission: () -> Unit,
     val onDenyPermission: () -> Unit,
     val onGoToSettingsAirplane: () -> Unit,
     val onDismissAirplane: () -> Unit,
+    // Acciones de georeferenciación automática
+    val onRecalculate: () -> Unit,
     val onRetryTimeout: () -> Unit,
     val onAcceptManualTimeout: () -> Unit,
 )
 
-// ── Factory ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Factory
+// El parámetro [calculateLocation] controla si el GPS activo georeferencia
+// o solo se usa para centrar la cámara (modo manual).
+// ─────────────────────────────────────────────────────────────────────────────
 
 @SuppressLint("InlinedApi")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun rememberMapState(
     viewModel: MapViewModel = viewModel(),
-    calculateLocation: Boolean = true,
+    calculateLocation: Boolean,
     focusOnCurrentLocation: Boolean = true,
-    onLocationAccepted: ((LocationData) -> Unit)? = null,
 ): MapState {
 
-    val context         = LocalContext.current
-    val lifecycleOwner  = LocalLifecycleOwner.current
-    val uiState         by viewModel.uiState.collectAsState()
-    val scope           = rememberCoroutineScope()
+    val context        = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val uiState        by viewModel.uiState.collectAsState()
+    val scope          = rememberCoroutineScope()
 
-    val permissionsState = rememberMultiplePermissionsState(
+    val permissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
         listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -105,8 +116,26 @@ fun rememberMapState(
         }
     }
 
+    fun centerCamera() {
+        if (uiState.locationData.tieneCoordenadasValidas) {
+            scope.launch {
+                runCatching {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(
+                                uiState.locationData.latitude,
+                                uiState.locationData.longitude,
+                            ),
+                            16f,
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     // ── Launcher del diálogo nativo de GPS ───────────────────────────────────
-    // Solo se lanza desde el botón "Activar GPS" — nunca automáticamente
+    // Solo se dispara desde el botón "Activar GPS", nunca automáticamente
 
     val gpsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -124,33 +153,15 @@ fun rememberMapState(
         }
     }
 
-    fun centerCamera() {
-        if (uiState.locationData.tieneCoordenadasValidas) {
-            scope.launch {
-                runCatching {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(
-                            com.google.android.gms.maps.model.LatLng(
-                                uiState.locationData.latitude,
-                                uiState.locationData.longitude,
-                            ),
-                            16f,
-                        )
-                    )
-                }
-            }
-        }
-    }
-
     // ── Efectos ───────────────────────────────────────────────────────────────
 
     LaunchedEffect(Unit) {
         viewModel.setGpsDialogActive(false)
         viewModel.onHardwareChanged(
-            gpsOn           = isGpsEnabled(context),
-            airplaneOn      = isAirplaneMode(context),
+            gpsOn             = isGpsEnabled(context),
+            airplaneOn        = isAirplaneMode(context),
             calculateLocation = calculateLocation,
-            isInitialCheck  = true,
+            isInitialCheck    = true,
         )
         if (permisosRealmenteOtorgados()) evaluate()
         else permissionsState.launchMultiplePermissionRequest()
@@ -160,6 +171,8 @@ fun rememberMapState(
         evaluate()
     }
 
+    // Solo arranca la georeferenciación si calculateLocation=true
+    // En modo manual, el GPS sigue activo pero solo para centrar cámara
     LaunchedEffect(uiState.step) {
         if (uiState.step == MapFlowStep.MAP_OK
             && calculateLocation
@@ -170,16 +183,20 @@ fun rememberMapState(
         }
     }
 
+    // Centra cámara cuando llega la primera coordenada (ambos modos)
     var hasFocused by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(uiState.locationData.tieneCoordenadasValidas) {
-        if (focusOnCurrentLocation && uiState.locationData.tieneCoordenadasValidas && !hasFocused) {
+        if (focusOnCurrentLocation
+            && uiState.locationData.tieneCoordenadasValidas
+            && !hasFocused
+        ) {
             delay(500L)
             centerCamera()
             hasFocused = true
         }
     }
 
-    // ON_RESUME — cubre el caso de volver desde Ajustes
+    // ON_RESUME — cubre volver desde Ajustes del sistema
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) evaluate()
@@ -189,7 +206,6 @@ fun rememberMapState(
     }
 
     // BroadcastReceiver — cambios de GPS y modo avión en tiempo real
-    // El diálogo nativo NO se lanza aquí; solo desde el botón "Activar GPS"
     DisposableEffect(context) {
         val filter = IntentFilter().apply {
             addAction(LocationManager.PROVIDERS_CHANGED_ACTION)
@@ -202,7 +218,6 @@ fun rememberMapState(
 
                 Log.i("MapState", "onReceive gpsOn=$gpsOn airplaneOn=$airplaneOn")
 
-                // Si el GPS se activó externamente, limpia el flag
                 if (gpsOn && viewModel.uiState.value.isGpsDialogActive) {
                     viewModel.setGpsDialogActive(false)
                 }
@@ -214,7 +229,7 @@ fun rememberMapState(
                 )
 
                 evaluate()
-                // ← Sin requestGps() automático aquí — decisión de diseño
+                // Sin requestGps() automático — solo desde el botón
             }
         }
         context.registerReceiver(receiver, filter)
@@ -224,32 +239,32 @@ fun rememberMapState(
     // ── Construcción del estado público ──────────────────────────────────────
 
     return MapState(
-        uiState             = uiState,
-        cameraPositionState = cameraPositionState,
-        permisosOtorgados   = permisosRealmenteOtorgados(),
-        onRequestGps        = requestGps,
-        onCenterCamera      = ::centerCamera,
-        onRecalculate       = { viewModel.recalculateLocation() },
-        onLocationAccepted  = { data -> onLocationAccepted?.invoke(data) },
-        onAllowPermission   = {
+        uiState                      = uiState,
+        cameraPositionState          = cameraPositionState,
+        permisosOtorgados            = permisosRealmenteOtorgados(),
+        canShowNativePermissionDialog = permissionsState.shouldShowRationale,
+        onRequestGps                 = requestGps,
+        onCenterCamera               = ::centerCamera,
+        onAllowPermission            = {
             viewModel.showRationale(false)
             permissionsState.launchMultiplePermissionRequest()
         },
-        onGoToSettingsPermission = {
+        onGoToSettingsPermission     = {
             viewModel.showRationale(false)
             viewModel.setStep(MapFlowStep.BLOCKED_SETTINGS)
             openAppSettings(context)
         },
-        onDenyPermission = {
+        onDenyPermission             = {
             viewModel.showRationale(false)
             viewModel.setStep(MapFlowStep.BLOCKED_SETTINGS)
         },
-        onGoToSettingsAirplane = {
+        onGoToSettingsAirplane       = {
             viewModel.dismissAirplaneDialog()
             openAirplaneSettings(context)
         },
-        onDismissAirplane  = { viewModel.dismissAirplaneDialog() },
-        onRetryTimeout     = { viewModel.onRetryAfterTimeout() },
-        onAcceptManualTimeout = { viewModel.onAcceptManualAfterTimeout() },
+        onDismissAirplane            = { viewModel.dismissAirplaneDialog() },
+        onRecalculate                = { viewModel.recalculateLocation() },
+        onRetryTimeout               = { viewModel.onRetryAfterTimeout() },
+        onAcceptManualTimeout        = { viewModel.onAcceptManualAfterTimeout() },
     )
 }

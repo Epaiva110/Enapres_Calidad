@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.unit.dp
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Pregunta
 
@@ -25,9 +26,9 @@ fun DynamicQuestionAdapter(
             // Renderizador del componente base según el nuevo esquema
             when (pregunta.type.lowercase()) {
                 "info" -> InfoQuestion(pregunta)
-                //"text", "date", "time", "datetime" -> TextOrDateTimeQuestion(pregunta, valorActual as? String ?: "", onValueChange)
-                //"number" -> NumberQuestion(pregunta, valorActual, onValueChange, isDecimal = false)
-                //"decimal" -> NumberQuestion(pregunta, valorActual, onValueChange, isDecimal = true)
+                "text","date","time", "datetime" -> TextQuestion(pregunta, valorActual as? String ?: "", DateInputMode.PickerOrManual, onValueChange)
+                "decimal" -> NumberQuestionField(pregunta, valorActual, isDecimal = true, onValueChange)
+                "number" -> NumberQuestionField(pregunta, valorActual, isDecimal = false, onValueChange)
                 "single" -> SingleChoiceQuestion(pregunta, valorActual, respuestas, onValueChange)
                 "multiple", "multiple_binary" -> MultipleChoiceQuestion(pregunta, valorActual as? List<*> ?: emptyList<Any>(), respuestas, onValueChange)
                 "matrix", "matrix_scale" -> MatrixQuestionAdapter(pregunta, respuestas, onValueChange)

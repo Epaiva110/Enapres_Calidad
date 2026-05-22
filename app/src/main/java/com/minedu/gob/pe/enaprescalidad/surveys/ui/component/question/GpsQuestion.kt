@@ -169,8 +169,8 @@ fun GpsQuestion(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 MapScreenForSurvey(
-                    initialMode  = if (pregunta.allow_manual == true) null else MapMode.AUTO,
-                    allowManual  = pregunta.allow_manual ?: false,
+                    initialMode = MapMode.AUTO,
+                    allowManual = pregunta.allow_manual ?: false,
                     onAccepted   = { data ->
                         onValueChange(pregunta.variable, data.toGpsString())
                         showMapDialog = false
@@ -189,9 +189,9 @@ fun GpsQuestion(
 @Composable
 private fun GpsCapturedPanel(data: LocationData, onClear: () -> Unit) {
     val (qualityColor, qualityLabel) = when (data.quality) {
-        PrecisionQuality.EXCELENTE  -> Color(0xFF10B981) to "Excelente  (<10 m)"
-        PrecisionQuality.REGULAR    -> Color(0xFFF59E0B) to "Regular  (<50 m)"
-        PrecisionQuality.DEFICIENTE -> Color(0xFFEF4444) to "Deficiente  (>50 m)"
+        PrecisionQuality.EXCELENTE  -> Color(0xFF10B981) to "Excelente (<10 m)"
+        PrecisionQuality.REGULAR    -> Color(0xFFF59E0B) to "Regular (<50 m)"
+        PrecisionQuality.DEFICIENTE -> Color(0xFFEF4444) to "Deficiente (>50 m)"
         PrecisionQuality.DESCONOCIDA-> Color(0xFF6B7280) to "Manual"
     }
 
