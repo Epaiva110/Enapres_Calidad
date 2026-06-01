@@ -83,10 +83,6 @@ fun GoogleMapBase(
                 // CORRECCIÓN: Invocar el contenido del mapa pasando el scope correcto
                 mapContent?.invoke()
             }
-
-//            content = {
-//                Marker()
-//            }
         )
 
         // ── FAB centrar ubicación ─────────────────────────────────────────────
@@ -288,16 +284,9 @@ fun ManualMarkerMap(
             }
         },
     ) {
-//        // Marker en el mapa
-//        marker?.let { pos ->
-//            // Nota: el contenido @Composable dentro de overlay() corre en un
-//            // GoogleMapScope si lo necesitas para Markers nativos del mapa.
-//            // Como overlay() es BoxScope, el Marker va dentro del GoogleMap
-//            // directamente — ver nota al pie.
-//        }
-
         // Instrucción flotante mientras no hay marker
         AnimatedVisibility(
+            //visible  = marker == null && state.uiState.step == MapFlowStep.MAP_OK,
             visible  = marker == null && state.uiState.step == MapFlowStep.MAP_OK,
             enter    = fadeIn(),
             exit     = fadeOut(),
@@ -329,35 +318,6 @@ fun ManualMarkerMap(
                 }
             }
         }
-
-//        // Panel de confirmación manual
-//        AnimatedVisibility(
-//            visible  = marker != null,
-//            enter    = slideInVertically { it } + fadeIn(tween(200)),
-//            exit     = slideOutVertically { it } + fadeOut(tween(150)),
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .padding(16.dp),
-//        ) {
-//            marker?.let { pos ->
-//                ManualLocationPanel(
-//                    pos        = pos,
-//                    onClear    = { marker = null },
-//                    onAccepted = { latLng ->
-//                        onLocationAccepted?.invoke(
-//                            LocationData(
-//                                latitude            = latLng.latitude,
-//                                longitude           = latLng.longitude,
-//                                altitude            = 0.0,
-//                                accuracy            = 0f,
-//                                quality             = PrecisionQuality.DESCONOCIDA,
-//                                calculationFinished = true,
-//                            )
-//                        )
-//                    },
-//                )
-//            }
-//        }
 
         // Panel inferior — lectura o edición
         AnimatedVisibility(
@@ -728,6 +688,18 @@ private fun ManualLocationPanel(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Icon(
+                    imageVector =
+                        if (expanded)
+                            Icons.Default.KeyboardArrowDown
+                        else
+                            Icons.Default.KeyboardArrowUp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))

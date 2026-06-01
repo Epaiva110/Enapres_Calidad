@@ -229,9 +229,9 @@ private fun PanelHeader(
             Icon(
                 imageVector =
                     if (expanded)
-                        Icons.Default.KeyboardArrowUp
+                        Icons.Default.KeyboardArrowDown
                     else
-                        Icons.Default.KeyboardArrowDown,
+                        Icons.Default.KeyboardArrowUp,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

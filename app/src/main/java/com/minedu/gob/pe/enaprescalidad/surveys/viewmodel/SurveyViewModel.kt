@@ -1,14 +1,13 @@
 package com.minedu.gob.pe.enaprescalidad.surveys.viewmodel
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.minedu.gob.pe.enaprescalidad.surveys.models.Pagina
-import com.minedu.gob.pe.enaprescalidad.surveys.models.Survey
-import com.minedu.gob.pe.enaprescalidad.data.local.dao.surveys.SurveyConglomeradoDao
-import com.minedu.gob.pe.enaprescalidad.data.local.entity.surveys.SurveyConglomeradoEntity
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.SurveyResponseDao
+import com.minedu.gob.pe.enaprescalidad.data.local.entity.SurveyResponseEntity
 import com.minedu.gob.pe.enaprescalidad.surveys.SurveyCompletion
 import com.minedu.gob.pe.enaprescalidad.surveys.adapter.SurveyGson
-import com.minedu.gob.pe.enaprescalidad.surveys.models.ConditionEvaluator
-import com.minedu.gob.pe.enaprescalidad.surveys.models.Pregunta
+import com.minedu.gob.pe.enaprescalidad.surveys.models.*
+import com.minedu.gob.pe.enaprescalidad.surveys.repository.SurveyVersionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,1340 +16,450 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val OTRO_MIN_CHARS = 3
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  UI STATE
 // ─────────────────────────────────────────────────────────────────────────────
 
 data class SurveyUiState(
-
     val survey: Survey? = null,
-
-    // clave = variable
-    // valor = Any?
     val respuestas: Map<String, Any?> = emptyMap(),
-
-    // índice actual
     val paginaActual: Int = 0,
-
-    val erroresValidacion: Map<String, String> = emptyMap(),
-
-    // historial navegación
     val historial: List<Int> = emptyList(),
-
-    // loading states
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isCompleted: Boolean = false,
-
-    // errores
     val error: String? = null,
-
-    // observaciones
+    val saveMessage: String? = null,
     val showObsDialog: Boolean = false,
-
-    // variables que fallaron validación (resaltar en rojo)
     val variablesConError: Set<String> = emptySet(),
+    val constraintResults: List<ConstraintResult> = emptyList(),
+    val surveyVersion: String = "",
+    val surveyOrigen: String = "",
+) {
+    val pagina: Pagina?        get() = survey?.paginas?.getOrNull(paginaActual)
+    val isLastPage: Boolean    get() = survey != null && paginaActual == survey.paginas.lastIndex
+    val totalPaginas: Int      get() = survey?.paginas?.size ?: 0
 
-    ) {
-//    val progreso: Float get() = if (totalPaginas == 0) 0f else (paginaActual + 1f) / totalPaginas
-    // ─────────────────────────────────────────────────────────────────────────
-    // PAGINA ACTUAL
-    // ─────────────────────────────────────────────────────────────────────────
-
-    val pagina: Pagina?
-        get() = survey
-            ?.paginas
-            ?.getOrNull(paginaActual)
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // ULTIMA PAGINA
-    // ─────────────────────────────────────────────────────────────────────────
-
-    val isLastPage: Boolean
-        get() =
-            survey != null &&
-                    paginaActual == survey.paginas.lastIndex
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // TOTAL PAGINAS
-    // ─────────────────────────────────────────────────────────────────────────
-
-    val totalPaginas: Int
-        get() =
-            survey?.paginas?.size ?: 0
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // PROGRESO REAL
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun progreso(
-        paginasVisibles: List<Int>
-    ): Float {
-
-        val paginaId =
-            pagina?.id_pagina ?: return 0f
-
-        val idx =
-            paginasVisibles.indexOf(paginaId)
-
-        if (
-            idx == -1 ||
-            paginasVisibles.isEmpty()
-        ) {
-            return 0f
-        }
-
-        return (idx + 1f) / paginasVisibles.size
+    val obsValida: Boolean get() {
+        val p   = pagina ?: return false
+        val min = survey?.config?.min_caracteres_observacion ?: 0
+        if (min == 0) return true
+        return (respuestas["OBS_${p.seccion_id}"]?.toString()?.trim() ?: "").length >= min
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // OBSERVACION VALIDA
-    // ─────────────────────────────────────────────────────────────────────────
+    fun progreso(paginasVisibles: List<Int>): Float {
+        val id  = pagina?.id_pagina ?: return 0f
+        val idx = paginasVisibles.indexOf(id)
+        return if (idx == -1 || paginasVisibles.isEmpty()) 0f
+        else (idx + 1f) / paginasVisibles.size
+    }
 
-    val obsValida: Boolean
-        get() {
+    val variablesBlockedByError: Set<String>
+        get() = constraintResults.filter { it.severity == ValidationSeverity.ERROR }.map { it.variable }.toSet()
 
-            val p =
-                pagina ?: return false
+    val warningMessages: List<ConstraintResult>
+        get() = constraintResults.filter { it.severity == ValidationSeverity.WARNING }
 
-            val min =
-                survey?.config?.min_caracteres_observacion
-                    ?: 10
-
-            val texto =
-                respuestas["OBS_${p.seccion_id}"]
-                    ?.toString()
-                    ?.trim()
-                    ?: ""
-
-            return texto.length >= min
-        }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // VARIABLE EN FOCO
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun obtenerVariableEnFoco(
-        evaluator: ConditionEvaluator
-    ): String {
-
-        val p =
-            pagina ?: return ""
-
-        fun estaRespondida(
-            valor: Any?
-        ): Boolean {
-
-            return when (valor) {
-
-                null -> false
-
-                is String ->
-                    valor.isNotBlank()
-
-                is List<*> ->
-                    valor.isNotEmpty()
-
-                else -> true
-            }
-        }
-
+    fun obtenerVariableEnFoco(evaluator: ConditionEvaluator): String {
+        val p = pagina ?: return ""
+        fun ok(v: Any?) = when (v) { null -> false; is String -> v.isNotBlank(); is List<*> -> v.isNotEmpty(); else -> true }
         for (preg in p.preguntas) {
-
-            // solo requeridas
             if (!preg.required) continue
-
-            // show_if
-            if (
-                preg.show_if != null &&
-                !evaluator.evaluate(
-                    preg.show_if,
-                    respuestas
-                )
-            ) continue
-
+            if (preg.show_if != null && !evaluator.evaluate(preg.show_if, respuestas)) continue
             when (preg.type.lowercase()) {
-
-                // ─────────────────────────────────────────────────────────────
-                // MATRIX
-                // ─────────────────────────────────────────────────────────────
-
-                "matrix",
-                "matrix_scale",
-                "matrix_detail" -> {
-
-                    preg.options?.forEach { fila ->
-
-                        val subVar =
-                            "${preg.variable}_${fila.variable ?: fila.value ?: ""}"
-
-                        if (
-                            !estaRespondida(
-                                respuestas[subVar]
-                            )
-                        ) {
-                            return subVar
-                        }
-
-                        // detail questions internas
-                        fila.detail_questions?.forEach { subPreg ->
-
-                            val visible =
-                                subPreg.show_if == null ||
-                                        evaluator.evaluate(
-                                            subPreg.show_if,
-                                            respuestas
-                                        )
-
-                            if (
-                                subPreg.required &&
-                                visible &&
-                                !estaRespondida(
-                                    respuestas[subPreg.variable]
-                                )
-                            ) {
-                                return subPreg.variable
-                            }
-                        }
+                "matrix", "matrix_scale", "matrix_detail" ->
+                    preg.options?.forEach { f ->
+                        val sv = "${preg.variable}_${f.variable ?: f.value ?: ""}"
+                        if (!ok(respuestas[sv])) return sv
                     }
-                }
-
-                // ─────────────────────────────────────────────────────────────
-                // PREGUNTAS NORMALES
-                // ─────────────────────────────────────────────────────────────
-
-                else -> {
-
-                    if (
-                        !estaRespondida(
-                            respuestas[preg.variable]
-                        )
-                    ) {
-                        return preg.variable
-                    }
-
-                    preg.options?.forEach { opcion ->
-
-                        val valorPadre =
-                            respuestas[preg.variable]
-
-                        val seleccionada =
-                            when (valorPadre) {
-
-                                is List<*> ->
-                                    valorPadre.map {
-                                        it.toString()
-                                    }.contains(
-                                        opcion.value?.toString()
-                                    )
-
-                                else ->
-                                    valorPadre?.toString() ==
-                                            opcion.value?.toString()
-                            }
-
-                        if (seleccionada) {
-
-                            opcion.detail_questions?.forEach { subPreg ->
-
-                                val visible =
-                                    subPreg.show_if == null ||
-                                            evaluator.evaluate(
-                                                subPreg.show_if,
-                                                respuestas
-                                            )
-
-                                if (
-                                    subPreg.required &&
-                                    visible &&
-                                    !estaRespondida(
-                                        respuestas[subPreg.variable]
-                                    )
-                                ) {
-                                    return subPreg.variable
-                                }
-                            }
-                        }
-                    }
-                }
+                else -> if (!ok(respuestas[preg.variable])) return preg.variable
             }
         }
-
         return ""
     }
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  VIEW MODEL
 // ─────────────────────────────────────────────────────────────────────────────
+
 @HiltViewModel
 class SurveyViewModel @Inject constructor(
-    private val dao: SurveyConglomeradoDao,
+    private val responseDao: SurveyResponseDao,
+    private val versionRepository: SurveyVersionRepository,
 ) : ViewModel() {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // UI STATE
-    // ─────────────────────────────────────────────────────────────────────────
-
     private val _uiState = MutableStateFlow(SurveyUiState())
-    val uiState: StateFlow<SurveyUiState> =
-        _uiState.asStateFlow()
+    val uiState: StateFlow<SurveyUiState> = _uiState.asStateFlow()
 
     val evaluator = ConditionEvaluator()
 
-    private var muestraId: Int = -1
-    private var surveyId: String = ""
-
+    private lateinit var surveyContext: SurveyContext
     private lateinit var survey: Survey
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // INIT
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── INIT ─────────────────────────────────────────────────────────────────
 
-    fun init(
-        muestraId: Int,
-        jsonString: String
-    ) {
-        if (this.muestraId == muestraId && _uiState.value.survey != null) {
-            return
-        }
-
-        this.muestraId = muestraId
+    fun init(context: SurveyContext) {
+        if (::surveyContext.isInitialized && surveyContext == context && _uiState.value.survey != null) return
+        surveyContext = context
 
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, error = null)
-            }
-
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                survey = SurveyGson.instance.fromJson(jsonString, Survey::class.java)
-                surveyId = survey.survey_id
+                val resolved = versionRepository.resolveJson(context)
+                survey = SurveyGson.instance.fromJson(resolved.json, Survey::class.java)
 
-                val entidades = dao.obtenerRespuestasSincronas(muestraId, surveyId)
-                val mapa = entidades.associate { it.variable to deserializarValor(it.valor) }
+                val mapa = responseDao
+                    .obtenerRespuestas(context.surveyType.name, context.contextKey)
+                    .associate { it.variable to deserializarValor(it.valor) }
 
                 _uiState.update {
                     it.copy(
-                        survey = survey,
-                        respuestas = mapa,
-                        paginaActual = 0,
-                        historial = emptyList(),
-                        isCompleted = false,
+                        survey            = survey,
+                        respuestas        = mapa,
+                        paginaActual      = 0,
+                        historial         = emptyList(),
+                        isCompleted       = false,
                         variablesConError = emptySet(),
-                        showObsDialog = false,
-                        error = null,
-                        isLoading = false,
+                        constraintResults = emptyList(),
+                        showObsDialog     = false,
+                        error             = null,
+                        isLoading         = false,
+                        surveyVersion     = resolved.version,
+                        surveyOrigen      = resolved.origen,
                     )
                 }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Error al parsear JSON: ${e.message}"
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false, error = "Error al cargar encuesta: ${e.message}") }
             }
         }
     }
 
-    fun consumeCompleted() {
-        _uiState.update { it.copy(isCompleted = false) }
-    }
+    fun consumeCompleted()   = _uiState.update { it.copy(isCompleted = false) }
+    fun consumeSaveMessage() = _uiState.update { it.copy(saveMessage = null) }
+    fun clearError()         = _uiState.update { it.copy(error = null) }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // HELPERS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── UPDATE ANSWER — persistencia en tiempo real ───────────────────────────
 
-    private fun estaRespondida(
-        valor: Any?
-    ): Boolean {
-
-        return when (valor) {
-
-            null -> false
-
-            is String ->
-                valor.isNotBlank()
-
-            is List<*> ->
-                valor.isNotEmpty()
-
-            else -> true
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UPDATE ANSWER
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun onUpdateAnswer(
-        variable: String,
-        valor: Any?,
-    ) {
+    fun onUpdateAnswer(variable: String, valor: Any?) {
         if (variable == SurveyCompletion.COMPLETED_VARIABLE) return
 
-        val nuevas =
-            _uiState.value.respuestas.toMutableMap()
-
-        if (valor == null) {
-            nuevas.remove(variable)
-        } else {
-            nuevas[variable] = valor
+        val nuevas = _uiState.value.respuestas.toMutableMap().apply {
+            if (valor == null) remove(variable) else put(variable, valor)
         }
 
+        val antesDeDepurar      = nuevas.keys.toSet()
         purgarRespuestasFantasmas(nuevas)
+        val variablesEliminadas = antesDeDepurar - nuevas.keys
+        val constraints         = evaluarConstraintsActivas(nuevas)
 
-        _uiState.update {
-            // Quitar la variable del set de errores si ya fue respondida
-            val errorActualizado = if (variable in it.variablesConError && estaRespondida(nuevas[variable])) {
-                it.variablesConError - variable
+        _uiState.update { state ->
+            val errores = if (variable in state.variablesConError && estaRespondida(nuevas[variable]))
+                state.variablesConError - variable else state.variablesConError
+            state.copy(respuestas = nuevas, variablesConError = errores, constraintResults = constraints)
+        }
+
+        viewModelScope.launch {
+            val type = surveyContext.surveyType.name
+            val key  = surveyContext.contextKey
+            if (nuevas.containsKey(variable)) {
+                responseDao.upsertRespuesta(
+                    SurveyResponseEntity(type, key, variable, serializarValor(nuevas[variable]))
+                )
             } else {
-                it.variablesConError
+                responseDao.borrarVariable(type, key, variable)
             }
-            it.copy(respuestas = nuevas, variablesConError = errorActualizado)
-        }
-
-        if (
-            _uiState.value.survey?.config?.guardar_automatico == true
-        ) {
-            sincronizarRoom(nuevas)
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // OBTENER VARIABLE EN FOCO
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun obtenerVariableEnFoco(
-        evaluator: ConditionEvaluator
-    ): String {
-
-        val p = _uiState.value.pagina ?: return ""
-
-        val respuestas =
-            _uiState.value.respuestas
-
-        for (preg in p.preguntas) {
-
-            if (!preg.required) continue
-
-            if (
-                preg.show_if != null &&
-                !evaluator.evaluate(
-                    preg.show_if,
-                    respuestas
-                )
-            ) continue
-
-            when (preg.type.lowercase()) {
-
-                "matrix",
-                "matrix_scale",
-                "matrix_detail" -> {
-
-                    preg.options?.forEach { fila ->
-
-                        val subVar =
-                            "${preg.variable}_${fila.variable ?: fila.value ?: ""}"
-
-                        if (
-                            !estaRespondida(
-                                respuestas[subVar]
-                            )
-                        ) {
-                            return subVar
-                        }
-
-                        fila.detail_questions?.forEach { subPreg ->
-
-                            if (
-                                subPreg.required &&
-                                (
-                                        subPreg.show_if == null ||
-                                                evaluator.evaluate(
-                                                    subPreg.show_if,
-                                                    respuestas
-                                                )
-                                        )
-                            ) {
-
-                                if (
-                                    !estaRespondida(
-                                        respuestas[subPreg.variable]
-                                    )
-                                ) {
-                                    return subPreg.variable
-                                }
-                            }
-                        }
-                    }
-                }
-
-                else -> {
-
-                    if (
-                        !estaRespondida(
-                            respuestas[preg.variable]
-                        )
-                    ) {
-                        return preg.variable
-                    }
-
-                    preg.options?.forEach { opcion ->
-
-                        val valorPadre =
-                            respuestas[preg.variable]
-
-                        val seleccionada =
-                            when (valorPadre) {
-
-                                is List<*> ->
-                                    valorPadre.map {
-                                        it.toString()
-                                    }.contains(
-                                        opcion.value?.toString()
-                                    )
-
-                                else ->
-                                    valorPadre?.toString() ==
-                                            opcion.value?.toString()
-                            }
-
-                        if (seleccionada) {
-
-                            opcion.detail_questions?.forEach { subPreg ->
-
-                                if (
-                                    subPreg.required &&
-                                    (
-                                            subPreg.show_if == null ||
-                                                    evaluator.evaluate(
-                                                        subPreg.show_if,
-                                                        respuestas
-                                                    )
-                                            )
-                                ) {
-
-                                    if (
-                                        !estaRespondida(
-                                            respuestas[subPreg.variable]
-                                        )
-                                    ) {
-                                        return subPreg.variable
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return ""
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // PURGA
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private fun purgarRespuestasFantasmas(
-        respuestas: MutableMap<String, Any?>
-    ) {
-
-        val paginasVisibles =
-            calcularPaginasVisibles(respuestas)
-
-        for (pagina in survey.paginas) {
-
-            val paginaVisible =
-                paginasVisibles.contains(
-                    pagina.id_pagina
-                )
-
-            for (preg in pagina.preguntas) {
-
-                val pregVisible =
-                    paginaVisible &&
-                            (
-                                    preg.show_if == null ||
-                                            evaluator.evaluate(
-                                                preg.show_if,
-                                                respuestas
-                                            )
-                                    )
-
-                if (!pregVisible) {
-
-                    eliminarArbol(
-                        preg,
-                        respuestas
-                    )
-
-                } else {
-
-                    limpiarDetallesInternos(
-                        preg,
-                        respuestas
-                    )
-                }
+            if (variablesEliminadas.isNotEmpty()) {
+                responseDao.borrarVariables(type, key, variablesEliminadas.toList())
             }
         }
     }
 
-    private fun eliminarArbol(
-        preg: Pregunta,
-        respuestas: MutableMap<String, Any?>
-    ) {
-
-        respuestas.remove(preg.variable)
-
-        preg.options?.forEach { opcion ->
-
-            val claveFila =
-                opcion.variable ?: opcion.value
-
-            if (!claveFila.isNullOrEmpty()) {
-
-                respuestas.remove(
-                    "${preg.variable}_$claveFila"
-                )
-            }
-
-            opcion.detail_questions?.forEach { sub ->
-
-                eliminarArbol(
-                    sub,
-                    respuestas
-                )
-            }
-        }
-    }
-
-    private fun limpiarDetallesInternos(
-        preg: Pregunta,
-        respuestas: MutableMap<String, Any?>
-    ) {
-
-        val valorPadre =
-            respuestas[preg.variable]
-
-        when {
-
-            preg.type.lowercase().contains("matrix") -> {
-
-                preg.options?.forEach { fila ->
-
-                    fila.detail_questions?.forEach { sub ->
-
-                        val subVisible =
-                            sub.show_if == null ||
-                                    evaluator.evaluate(
-                                        sub.show_if,
-                                        respuestas
-                                    )
-
-                        if (!subVisible) {
-
-                            eliminarArbol(
-                                sub,
-                                respuestas
-                            )
-
-                        } else {
-
-                            limpiarDetallesInternos(
-                                sub,
-                                respuestas
-                            )
-                        }
-                    }
-                }
-            }
-
-            else -> {
-
-                preg.options?.forEach { opcion ->
-
-                    val seleccionada =
-                        when (valorPadre) {
-
-                            is List<*> ->
-                                valorPadre.map {
-                                    it.toString()
-                                }.contains(
-                                    opcion.value?.toString()
-                                )
-
-                            else ->
-                                valorPadre?.toString() ==
-                                        opcion.value?.toString()
-                        }
-
-                    opcion.detail_questions?.forEach { sub ->
-
-                        val subVisible =
-                            seleccionada &&
-                                    (
-                                            sub.show_if == null ||
-                                                    evaluator.evaluate(
-                                                        sub.show_if,
-                                                        respuestas
-                                                    )
-                                            )
-
-                        if (!subVisible) {
-
-                            eliminarArbol(
-                                sub,
-                                respuestas
-                            )
-
-                        } else {
-
-                            limpiarDetallesInternos(
-                                sub,
-                                respuestas
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // PAGINAS VISIBLES
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun calcularPaginasVisibles(
-        respuestas: Map<String, Any?> =
-            _uiState.value.respuestas
-    ): Set<Int> {
-
-        val visibles =
-            mutableSetOf<Int>()
-
-        val mapa =
-            survey.paginas.associateBy {
-                it.id_pagina
-            }
-
-        var idActual =
-            survey.paginas.firstOrNull()?.id_pagina
-                ?: return visibles
-
-        while (mapa.containsKey(idActual)) {
-
-            if (visibles.contains(idActual)) break
-
-            visibles.add(idActual)
-
-            val pag =
-                mapa[idActual]!!
-
-            var salto: Int? = null
-
-            outer@ for (preg in pag.preguntas) {
-
-                val ans =
-                    respuestas[preg.variable]
-
-                for (opt in preg.options ?: emptyList()) {
-
-                    val sel =
-                        when (ans) {
-
-                            is List<*> ->
-                                ans.map {
-                                    it.toString()
-                                }.contains(
-                                    opt.value?.toString()
-                                )
-
-                            else ->
-                                ans?.toString() ==
-                                        opt.value?.toString()
-                        }
-
-                    if (
-                        sel &&
-                        opt.jump_to_page != null
-                    ) {
-
-                        salto = opt.jump_to_page
-                        break@outer
-                    }
-                }
-            }
-
-            if (salto == null) {
-
-                for (preg in pag.preguntas) {
-
-                    if (
-                        preg.jump_to_page != null &&
-                        respuestas.containsKey(
-                            preg.variable
-                        )
-                    ) {
-
-                        val vis =
-                            preg.show_if == null ||
-                                    evaluator.evaluate(
-                                        preg.show_if,
-                                        respuestas
-                                    )
-
-                        if (vis) {
-
-                            salto =
-                                preg.jump_to_page
-
-                            break
-                        }
-                    }
-                }
-            }
-
-            idActual =
-                salto ?: run {
-
-                    val idx =
-                        survey.paginas.indexOf(pag)
-
-                    if (
-                        idx < survey.paginas.lastIndex
-                    ) {
-                        survey.paginas[idx + 1].id_pagina
-                    } else {
-                        break
-                    }
-                }
-        }
-
-        return visibles
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // VALIDACION
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private fun validarDetalles(
-        preg: Pregunta,
-        resp: Map<String, Any?>,
-        recurse: (Pregunta) -> Boolean
-    ): Boolean {
-
-        val valorPadre =
-            resp[preg.variable]
-
-        preg.options?.forEach { opcion ->
-
-            val sel =
-                when (valorPadre) {
-
-                    is List<*> ->
-                        valorPadre.map {
-                            it.toString()
-                        }.contains(
-                            opcion.value?.toString()
-                        )
-
-                    else ->
-                        valorPadre?.toString() ==
-                                opcion.value?.toString()
-                }
-
-            opcion.detail_questions?.forEach { sub ->
-
-                if (
-                    sel &&
-                    (
-                            sub.show_if == null ||
-                                    evaluator.evaluate(
-                                        sub.show_if,
-                                        resp
-                                    )
-                            )
-                ) {
-
-                    if (!recurse(sub)) {
-                        return false
-                    }
-                }
-            }
-        }
-
-        return true
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // CALCULAR VARIABLES CON ERROR (para resaltar en rojo)
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── VALIDACIÓN ────────────────────────────────────────────────────────────
 
     fun calcularVariablesConError(): Set<String> {
-
-        val p = _uiState.value.pagina ?: return emptySet()
+        val p    = _uiState.value.pagina ?: return emptySet()
         val resp = _uiState.value.respuestas
-        val errores = mutableSetOf<String>()
+        val err  = mutableSetOf<String>()
 
-        fun recolectarErrores(preg: Pregunta) {
-
+        fun recolectar(preg: Pregunta) {
             if (preg.show_if != null && !evaluator.evaluate(preg.show_if, resp)) return
-
             when (preg.type.lowercase()) {
-
                 "info" -> return
-
                 "matrix", "matrix_scale", "matrix_detail" -> {
                     if (!preg.required) return
-                    preg.options?.forEach { fila ->
-                        val subVar = "${preg.variable}_${fila.variable ?: fila.value ?: ""}"
-                        if (!estaRespondida(resp[subVar])) errores.add(subVar)
-                        fila.detail_questions?.forEach { sub ->
-                            if (sub.required) recolectarErrores(sub)
-                        }
+                    preg.options?.forEach { f ->
+                        val sv = "${preg.variable}_${f.variable ?: f.value ?: ""}"
+                        if (!estaRespondida(resp[sv])) err += sv
                     }
                 }
-
-                "multiple", "multiple_binary" -> {
+                TipoPregunta.ENTITY_HOGAR,
+                TipoPregunta.ENTITY_PERSONA,
+                TipoPregunta.ENTITY_VISITA -> {
                     if (!preg.required) return
-                    val lista = resp[preg.variable] as? List<*>
-                    if (lista == null || lista.isEmpty()) errores.add(preg.variable)
+                    val conteo = resp[preg.variable]?.toString()?.toIntOrNull() ?: 0
+                    if (conteo < (preg.entity_config?.min_registros ?: 1)) err += preg.variable
                 }
-
-                "gps" -> {
-                    if (!preg.required) return
-                    val gps = resp[preg.variable]?.toString() ?: ""
-                    if (!gps.contains("OMITIDO") && gps.isBlank()) errores.add(preg.variable)
-                }
-
                 else -> {
-                    if (preg.required && !estaRespondida(resp[preg.variable])) {
-                        errores.add(preg.variable)
-                    }
-                    // check detail_questions of selected options
-                    val valorPadre = resp[preg.variable]
-                    preg.options?.forEach { opcion ->
-                        val sel = when (valorPadre) {
-                            is List<*> -> valorPadre.map { it.toString() }.contains(opcion.value?.toString())
-                            else -> valorPadre?.toString() == opcion.value?.toString()
-                        }
-                        if (sel) {
-                            opcion.detail_questions?.forEach { sub ->
-                                if (sub.required) recolectarErrores(sub)
+                    if (preg.required) {
+                        val v = resp[preg.variable]
+                        when {
+                            !estaRespondida(v) -> err += preg.variable
+                            // "Otro" seleccionado pero especifique vacío o corto
+                            v?.toString() == "__otro__" -> {
+                                val especifique = resp["${preg.variable}_otro"]?.toString()?.trim() ?: ""
+                                if (especifique.length < OTRO_MIN_CHARS) err += preg.variable
                             }
                         }
                     }
+                    val vp = resp[preg.variable]
+                    preg.options?.forEach { op ->
+                        val sel = when (vp) {
+                            is List<*> -> vp.map { it.toString() }.contains(op.value?.toString())
+                            else       -> vp?.toString() == op.value?.toString()
+                        }
+                        if (sel) op.detail_questions?.forEach { if (it.required) recolectar(it) }
+                    }
                 }
             }
         }
 
-        p.preguntas.forEach { preg -> recolectarErrores(preg) }
+        p.preguntas.forEach { recolectar(it) }
 
-        val minObs = survey.config.min_caracteres_observacion
-        val obs = resp["OBS_${p.seccion_id}"]?.toString()?.trim() ?: ""
-        if (obs.length < minObs) errores.add("OBS_${p.seccion_id}")
+        // Observaciones: sin mínimo obligatorio — nunca bloquean el avance
 
-        return errores
+        // Constraints ERROR bloquean igual que required
+        evaluarConstraintsActivas(resp)
+            .filter { it.severity == ValidationSeverity.ERROR }
+            .forEach { err += it.variable }
+
+        return err
     }
 
-    private fun buildValidationErrorMessage(errores: Set<String>): String {
-        val p = _uiState.value.pagina ?: return "Completa todas las preguntas requeridas."
-        val minObs = survey.config.min_caracteres_observacion
-        val obsKey = "OBS_${p.seccion_id}"
-
-        val partes = mutableListOf<String>()
-        val preguntas = errores.filter { it != obsKey && !it.startsWith("OBS_") }
-        if (preguntas.isNotEmpty()) {
-            partes.add("preguntas requeridas pendientes")
-        }
-        if (obsKey in errores && minObs > 0) {
-            partes.add("observación de sección (mín. $minObs caracteres, ícono de notas o campo al final de la página)")
-        }
-        return if (partes.isEmpty()) {
-            "Completa todas las preguntas requeridas."
-        } else {
-            "Falta: ${partes.joinToString(" y ")}."
-        }
-    }
-
-    private fun paginaEsValida(): Boolean {
-
-        val p =
-            _uiState.value.pagina ?: return false
-
-        val resp =
-            _uiState.value.respuestas
-
-        val minObs =
-            survey.config.min_caracteres_observacion
-
-        val obs =
-            resp["OBS_${p.seccion_id}"]
-                ?.toString()
-                ?: ""
-
-        fun preguntaValida(
-            preg: Pregunta
-        ): Boolean {
-
-            if (
-                preg.show_if != null &&
-                !evaluator.evaluate(
-                    preg.show_if,
-                    resp
-                )
-            ) {
-                return true
-            }
-
-            val v =
-                resp[preg.variable]
-
-            val base =
-                when (preg.type.lowercase()) {
-
-                    "info" -> true
-
-                    "matrix",
-                    "matrix_scale",
-                    "matrix_detail" -> {
-
-                        preg.options?.all { fila ->
-
-                            val clave =
-                                fila.variable ?: fila.value
-
-                            !clave.isNullOrEmpty() &&
-                                    estaRespondida(
-                                        resp["${preg.variable}_$clave"]
-                                    )
-
-                        } ?: true
-                    }
-
-                    "multiple",
-                    "multiple_binary" -> {
-
-                        val lista =
-                            v as? List<*>
-
-                        lista != null &&
-                                lista.isNotEmpty()
-                    }
-
-                    "gps" -> {
-
-                        val gps =
-                            v?.toString() ?: ""
-
-                        gps.contains("OMITIDO") ||
-                                gps.isNotBlank()
-                    }
-
-                    else ->
-                        estaRespondida(v)
-                }
-
-            return base &&
-                    validarDetalles(
-                        preg,
-                        resp,
-                        ::preguntaValida
-                    )
-        }
-
-        val preguntasOk =
-            p.preguntas.all(::preguntaValida)
-
-        return preguntasOk &&
-                obs.trim().length >= minObs
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // NAVEGACION
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── NAVEGACIÓN ────────────────────────────────────────────────────────────
 
     fun onNextPage() {
-
+        // Limpiar primero para que LaunchedEffect detecte el nuevo valor
+        _uiState.update { it.copy(error = null, variablesConError = emptySet()) }
         val errores = calcularVariablesConError()
         if (errores.isNotEmpty()) {
-            _uiState.update {
-                it.copy(
-                    error = buildValidationErrorMessage(errores),
-                    variablesConError = errores
-                )
-            }
+            _uiState.update { it.copy(error = buildErrorMessage(errores), variablesConError = errores) }
             return
         }
-
-        // Limpiar errores al avanzar exitosamente
-        _uiState.update { it.copy(variablesConError = emptySet()) }
-
-        val state =
-            _uiState.value
-
-        val pag =
-            state.pagina ?: return
-
-        val paginasVisibles =
-            calcularPaginasVisibles()
-                .toList()
-                .sorted()
-
-        val idxActual =
-            survey.paginas.indexOfFirst {
-                it.id_pagina == pag.id_pagina
-            }
-
-        val siguienteId =
-            paginasVisibles.firstOrNull { id ->
-
-                val idx =
-                    survey.paginas.indexOfFirst {
-                        it.id_pagina == id
-                    }
-
-                idx > idxActual
-            }
-
-        if (siguienteId == null) {
-
-            _uiState.update {
-                it.copy(isSaving = true)
-            }
-
-            viewModelScope.launch {
-                val respuestasFinal = _uiState.value.respuestas.toMutableMap().apply {
-                    put(SurveyCompletion.COMPLETED_VARIABLE, true)
-                }
-                guardarTodoEnRoom(respuestasFinal)
-
-                _uiState.update {
-                    it.copy(
-                        respuestas = respuestasFinal,
-                        isSaving = false,
-                        isCompleted = true
-                    )
-                }
-            }
-
-        } else {
-
-            val nuevaPosicion =
-                survey.paginas.indexOfFirst {
-                    it.id_pagina == siguienteId
-                }
-
-            _uiState.update {
-
-                it.copy(
-                    paginaActual = nuevaPosicion,
-                    historial = it.historial + it.paginaActual,
-                )
-            }
-        }
+        navegarSiguiente()
     }
 
-    // Navegar sin validación (modo solo lectura)
-    fun onNextPageReadOnly() {
+    fun onNextPageReadOnly() = navegarSiguiente(ignorarValidacion = true)
 
-        val state = _uiState.value
-        val pag   = state.pagina ?: return
-
+    private fun navegarSiguiente(ignorarValidacion: Boolean = false) {
+        val pag             = _uiState.value.pagina ?: return
         val paginasVisibles = calcularPaginasVisibles().toList().sorted()
-
-        val idxActual = survey.paginas.indexOfFirst { it.id_pagina == pag.id_pagina }
-
-        val siguienteId = paginasVisibles.firstOrNull { id ->
-            val idx = survey.paginas.indexOfFirst { it.id_pagina == id }
-            idx > idxActual
+        val idxActual       = survey.paginas.indexOfFirst { it.id_pagina == pag.id_pagina }
+        val siguienteId     = paginasVisibles.firstOrNull { id ->
+            survey.paginas.indexOfFirst { it.id_pagina == id } > idxActual
         }
 
         if (siguienteId == null) {
-            // Última página en modo lectura → simplemente completar para salir
-            _uiState.update { it.copy(isCompleted = true) }
+            viewModelScope.launch {
+                _uiState.update { it.copy(isSaving = true) }
+                val final = _uiState.value.respuestas.toMutableMap().apply {
+                    put(SurveyCompletion.COMPLETED_VARIABLE, true)
+                }
+                guardarTodoEnRoom(final)
+                _uiState.update { it.copy(respuestas = final, isSaving = false, isCompleted = true) }
+            }
         } else {
-            val nuevaPosicion = survey.paginas.indexOfFirst { it.id_pagina == siguienteId }
+            val nuevaPos = survey.paginas.indexOfFirst { it.id_pagina == siguienteId }
             _uiState.update {
                 it.copy(
-                    paginaActual = nuevaPosicion,
-                    historial    = it.historial + it.paginaActual,
+                    paginaActual      = nuevaPos,
+                    historial         = it.historial + it.paginaActual,
+                    constraintResults = evaluarConstraintsActivas(it.respuestas),
                 )
             }
         }
     }
 
     fun onBackPage() {
-
-        val hist =
-            _uiState.value.historial
-
+        val hist = _uiState.value.historial
         if (hist.isEmpty()) return
-
         _uiState.update {
-
             it.copy(
-                paginaActual = hist.last(),
-                historial = hist.dropLast(1)
+                paginaActual      = hist.last(),
+                historial         = hist.dropLast(1),
+                constraintResults = evaluarConstraintsActivas(it.respuestas),
             )
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // OBSERVACION
-    // ─────────────────────────────────────────────────────────────────────────
+    fun calcularPaginasVisibles(
+        respuestas: Map<String, Any?> = _uiState.value.respuestas,
+    ): Set<Int> {
+        val visibles = mutableSetOf<Int>()
+        val mapa     = survey.paginas.associateBy { it.id_pagina }
+        var idActual = survey.paginas.firstOrNull()?.id_pagina ?: return visibles
 
-    fun openObsDialog() =
-        _uiState.update {
-            it.copy(showObsDialog = true)
+        while (mapa.containsKey(idActual)) {
+            if (idActual in visibles) break
+            visibles += idActual
+            val pag = mapa[idActual]!!
+            var salto: Int? = null
+
+            outer@ for (preg in pag.preguntas) {
+                val ans = respuestas[preg.variable]
+                for (opt in preg.options ?: emptyList()) {
+                    val sel = when (ans) {
+                        is List<*> -> ans.map { it.toString() }.contains(opt.value?.toString())
+                        else       -> ans?.toString() == opt.value?.toString()
+                    }
+                    if (sel && opt.jump_to_page != null) { salto = opt.jump_to_page; break@outer }
+                }
+            }
+            if (salto == null) {
+                for (preg in pag.preguntas) {
+                    if (preg.jump_to_page != null && respuestas.containsKey(preg.variable)) {
+                        val vis = preg.show_if == null || evaluator.evaluate(preg.show_if, respuestas)
+                        if (vis) { salto = preg.jump_to_page; break }
+                    }
+                }
+            }
+            idActual = salto ?: run {
+                val idx = survey.paginas.indexOf(pag)
+                if (idx < survey.paginas.lastIndex) survey.paginas[idx + 1].id_pagina else return visibles
+            }
         }
+        return visibles
+    }
 
-    fun closeObsDialog() =
-        _uiState.update {
-            it.copy(showObsDialog = false)
-        }
+    // ── OBSERVACIÓN ───────────────────────────────────────────────────────────
 
-    fun onGuardarObservacion(
-        texto: String
-    ) {
+    fun openObsDialog()  = _uiState.update { it.copy(showObsDialog = true) }
+    fun closeObsDialog() = _uiState.update { it.copy(showObsDialog = false) }
 
-        val p =
-            _uiState.value.pagina ?: return
-
-        onUpdateAnswer(
-            "OBS_${p.seccion_id}",
-            texto
-        )
-
+    fun onGuardarObservacion(texto: String) {
+        val p = _uiState.value.pagina ?: return
+        onUpdateAnswer("OBS_${p.seccion_id}", texto)
         closeObsDialog()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GUARDAR
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GUARDAR MANUAL ────────────────────────────────────────────────────────
 
     fun onGuardar() {
-
         viewModelScope.launch {
-
+            _uiState.update { it.copy(isSaving = true) }
+            guardarTodoEnRoom(_uiState.value.respuestas)
+            val errores = calcularVariablesConError()
+            val mensaje = if (errores.isEmpty()) "Datos guardados con éxito"
+            else "Guardado, pero hay preguntas sin contestar en esta página"
             _uiState.update {
-                it.copy(isSaving = true)
-            }
-
-            guardarTodoEnRoom(
-                _uiState.value.respuestas
-            )
-
-            _uiState.update {
-                it.copy(isSaving = false)
+                it.copy(
+                    isSaving          = false,
+                    saveMessage       = mensaje,
+                    variablesConError = if (errores.isNotEmpty()) errores else it.variablesConError,
+                )
             }
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ROOM
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── CONSTRAINTS ───────────────────────────────────────────────────────────
 
-    private fun sincronizarRoom(
-        mapaMemoria: Map<String, Any?>
-    ) {
+    private fun evaluarConstraintsActivas(
+        respuestas: Map<String, Any?> = _uiState.value.respuestas,
+    ): List<ConstraintResult> {
+        val pagina = _uiState.value.survey?.paginas?.getOrNull(_uiState.value.paginaActual)
+            ?: return emptyList()
+        val resultados = mutableListOf<ConstraintResult>()
 
-        viewModelScope.launch {
-
-            val enBd =
-                dao.obtenerRespuestasSincronas(
-                    muestraId,
-                    surveyId
-                )
-
-            val keysMemoria =
-                mapaMemoria.keys
-
-            enBd.forEach { entidad ->
-
-                if (
-                    entidad.variable !in keysMemoria
-                ) {
-
-                    dao.borrarVariable(
-                        muestraId,
-                        surveyId,
-                        entidad.variable
-                    )
-                }
+        fun procesarPregunta(preg: Pregunta) {
+            if (preg.show_if != null && !evaluator.evaluate(preg.show_if, respuestas)) return
+            preg.constraints?.forEach { regla ->
+                if (evaluator.evaluate(regla.trigger_if, respuestas))
+                    resultados += ConstraintResult(preg.variable, regla.severity, regla.message)
             }
-
-            dao.upsertAll(
-
-                mapaMemoria.map { (k, v) ->
-
-                    SurveyConglomeradoEntity(
-                        muestraId,
-                        surveyId,
-                        k,
-                        serializarValor(v)
-                    )
+            val vp = respuestas[preg.variable]
+            preg.options?.forEach { op ->
+                val sel = when (vp) {
+                    is List<*> -> vp.map { it.toString() }.contains(op.value?.toString())
+                    else       -> vp?.toString() == op.value?.toString()
                 }
-            )
+                if (sel) op.detail_questions?.forEach { procesarPregunta(it) }
+            }
+        }
+
+        pagina.preguntas.forEach { procesarPregunta(it) }
+        return resultados
+    }
+
+    // ── PURGA ─────────────────────────────────────────────────────────────────
+
+    private fun purgarRespuestasFantasmas(respuestas: MutableMap<String, Any?>) {
+        val paginasVisibles = calcularPaginasVisibles(respuestas)
+        for (pagina in survey.paginas) {
+            val paginaVisible = pagina.id_pagina in paginasVisibles
+            for (preg in pagina.preguntas) {
+                val pregVisible = paginaVisible &&
+                        (preg.show_if == null || evaluator.evaluate(preg.show_if, respuestas))
+                if (!pregVisible) eliminarArbol(preg, respuestas)
+                else limpiarDetallesInternos(preg, respuestas)
+            }
         }
     }
 
-    private suspend fun guardarTodoEnRoom(
-        mapa: Map<String, Any?>
-    ) {
-        dao.upsertAll(
-            mapa.map { (k, v) ->
-                SurveyConglomeradoEntity(
-                    muestraId,
-                    surveyId,
-                    k,
-                    serializarValor(v)
-                )
+    private fun eliminarArbol(preg: Pregunta, respuestas: MutableMap<String, Any?>) {
+        respuestas.remove(preg.variable)
+        preg.options?.forEach { op ->
+            val clave = op.variable ?: op.value
+            if (!clave.isNullOrEmpty()) respuestas.remove("${preg.variable}_$clave")
+            op.detail_questions?.forEach { eliminarArbol(it, respuestas) }
+        }
+    }
+
+    private fun limpiarDetallesInternos(preg: Pregunta, respuestas: MutableMap<String, Any?>) {
+        val vp = respuestas[preg.variable]
+        preg.options?.forEach { op ->
+            val sel = when (vp) {
+                is List<*> -> vp.map { it.toString() }.contains(op.value?.toString())
+                else       -> vp?.toString() == op.value?.toString()
             }
+            op.detail_questions?.forEach { sub ->
+                val subVisible = sel && (sub.show_if == null || evaluator.evaluate(sub.show_if, respuestas))
+                if (!subVisible) eliminarArbol(sub, respuestas)
+                else limpiarDetallesInternos(sub, respuestas)
+            }
+        }
+    }
+
+    // ── ROOM ──────────────────────────────────────────────────────────────────
+
+    private suspend fun guardarTodoEnRoom(mapa: Map<String, Any?>) {
+        val type = surveyContext.surveyType.name
+        val key  = surveyContext.contextKey
+        responseDao.upsertRespuestas(
+            mapa.map { (k, v) -> SurveyResponseEntity(type, key, k, serializarValor(v)) }
         )
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SERIALIZACION
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── HELPERS ───────────────────────────────────────────────────────────────
 
-    private fun serializarValor(
-        value: Any?
-    ): String {
-
-        return SurveyGson.instance.toJson(value)
+    private fun estaRespondida(valor: Any?) = when (valor) {
+        null -> false; is String -> valor.isNotBlank(); is List<*> -> valor.isNotEmpty(); else -> true
     }
 
-    private fun deserializarValor(
-        raw: String
-    ): Any? {
+    private fun serializarValor(value: Any?): String = SurveyGson.instance.toJson(value)
 
-        if (raw.isBlank()) {
-            return null
-        }
-
-        return try {
-
-            SurveyGson.instance.fromJson(
-                raw,
-                Any::class.java
-            )
-
-        } catch (_: Exception) {
-
-            raw
-        }
+    private fun deserializarValor(raw: String): Any? {
+        if (raw.isBlank()) return null
+        return try { SurveyGson.instance.fromJson(raw, Any::class.java) } catch (_: Exception) { raw }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ERROR
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun clearError() {
-
-        _uiState.update {
-            it.copy(error = null)
-        }
+    private fun buildErrorMessage(errores: Set<String>): String {
+        val p      = _uiState.value.pagina ?: return "Completa las preguntas requeridas."
+        val partes = mutableListOf<String>()
+        if (errores.any { !it.startsWith("OBS_") }) partes += "preguntas requeridas pendientes"
+        if (errores.any { it.startsWith("OBS_") }) partes += "observación de sección"
+        return if (partes.isEmpty()) "Completa las preguntas requeridas."
+        else "Falta: ${partes.joinToString(" y ")}."
     }
 }

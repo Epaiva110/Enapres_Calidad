@@ -15,12 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.minedu.gob.pe.enaprescalidad.surveys.models.SurveyOption
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers Choice
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum class ChoiceType { RADIO, CHECKBOX }
+
+const val OTRO_MIN_CHARS = 3
 
 @Composable
 fun ChoiceOptionRow(
@@ -37,30 +38,30 @@ fun ChoiceOptionRow(
     )
 
     Surface(
-        onClick   = { if (!disabled) onClick() },
-        enabled   = !disabled,
-        shape     = RoundedCornerShape(8.dp),
-        color     = bgColor,
-        modifier  = Modifier.fillMaxWidth(),
+        onClick  = { if (!disabled) onClick() },
+        enabled  = !disabled,
+        shape    = RoundedCornerShape(8.dp),
+        color    = bgColor,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier             = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment    = Alignment.CenterVertically,
+            modifier              = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (type == ChoiceType.RADIO) {
                 RadioButton(
-                    selected  = selected,
-                    onClick   = { if (!disabled) onClick() },
-                    enabled   = !disabled,
-                    modifier  = Modifier.size(20.dp),
+                    selected = selected,
+                    onClick  = { if (!disabled) onClick() },
+                    enabled  = !disabled,
+                    modifier = Modifier.size(20.dp),
                 )
             } else {
                 Checkbox(
-                    checked   = selected,
+                    checked         = selected,
                     onCheckedChange = { if (!disabled) onClick() },
-                    enabled   = !disabled,
-                    modifier  = Modifier.size(20.dp),
+                    enabled         = !disabled,
+                    modifier        = Modifier.size(20.dp),
                 )
             }
             Text(
@@ -80,10 +81,10 @@ fun ChoiceOptionRow(
 
 @Composable
 fun SubQuestionsBlock(
-    opcion      : SurveyOption,
-    respuestas  : Map<String, Any?>,
+    opcion       : SurveyOption,
+    respuestas   : Map<String, Any?>,
     onValueChange: (String, Any?) -> Unit,
-    editable: Boolean = true,
+    editable     : Boolean = true,
 ) {
     Column(
         modifier = Modifier
@@ -95,27 +96,41 @@ fun SubQuestionsBlock(
     ) {
         opcion.detail_questions?.forEach { sub ->
             DynamicQuestionAdapter(
-                pregunta       = sub,
-                respuestas     = respuestas,
-                variableEnFoco = "",
-                editable       = editable,
-                onValueChange  = onValueChange,
+                pregunta      = sub,
+                respuestas    = respuestas,
+                variableEnFoco= "",
+                editable      = editable,
+                onValueChange = onValueChange,
             )
         }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  OTRO ROW  — FIX: el especifique es requerido (min 3 chars) cuando se
+//  selecciona "Otro". Mientras el texto no cumpla el mínimo se muestra error
+//  y la variable principal queda incompleta para la validación del ViewModel.
+//
+//  Contrato de variables en Room:
+//   · "${variable}_otro"     → texto del especifique
+//   · La variable principal  → "__otro__" cuando Otro está seleccionado
+//
+//  El ViewModel valida que si variable == "__otro__" entonces
+//  "${variable}_otro" tenga al menos OTRO_MIN_CHARS caracteres.
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 fun OtroRow(
-    seleccionado: Boolean,
-    variable    : String,
-    respuestas  : Map<String, Any?>,
+    seleccionado : Boolean,
+    variable     : String,
+    respuestas   : Map<String, Any?>,
     onValueChange: (String, Any?) -> Unit,
-    isRadio     : Boolean,
-    editable: Boolean = true,
+    isRadio      : Boolean,
+    editable     : Boolean = true,
 ) {
-    val otroKey = "${variable}_otro"
-    val texto   = respuestas[otroKey]?.toString() ?: ""
+    val otroKey  = "${variable}_otro"
+    val texto    = respuestas[otroKey]?.toString() ?: ""
+    val tieneError = seleccionado && texto.trim().length < OTRO_MIN_CHARS
 
     Column {
         ChoiceOptionRow(
@@ -123,29 +138,47 @@ fun OtroRow(
             selected = seleccionado,
             type     = if (isRadio) ChoiceType.RADIO else ChoiceType.CHECKBOX,
             disabled = !editable,
-            onClick  = { onValueChange("${variable}_otro_sel", "__otro__") },
+            onClick  = {
+                // Marcar la variable principal como "__otro__"
+                onValueChange(variable, "__otro__")
+            },
         )
-        AnimatedVisibility(visible = seleccionado) {
-            OutlinedTextField(
-                value         = texto,
-                onValueChange = { onValueChange(otroKey, it) },
-                readOnly = !editable,
-                enabled = editable,
-                modifier      = Modifier.fillMaxWidth().padding(start = 32.dp, top = 4.dp),
-                placeholder   = { Text("Especifique…", fontSize = 12.sp) },
-                singleLine    = true,
-                shape         = RoundedCornerShape(8.dp),
-            )
+
+        AnimatedVisibility(
+            visible = seleccionado,
+            enter   = expandVertically() + fadeIn(),
+            exit    = shrinkVertically() + fadeOut(),
+        ) {
+            Column(modifier = Modifier.padding(start = 32.dp, top = 4.dp)) {
+                OutlinedTextField(
+                    value         = texto,
+                    onValueChange = { nuevo ->
+                        onValueChange(otroKey, nuevo)
+                    },
+                    readOnly      = !editable,
+                    enabled       = editable,
+                    modifier      = Modifier.fillMaxWidth(),
+                    placeholder   = { Text("Especifique…", fontSize = 12.sp) },
+                    singleLine    = true,
+                    shape         = RoundedCornerShape(8.dp),
+                    isError       = tieneError,
+                    supportingText = {
+                        if (tieneError) {
+                            Text(
+                                "Debe especificar al menos $OTRO_MIN_CHARS caracteres",
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 11.sp,
+                            )
+                        } else {
+                            Text(
+                                "${texto.trim().length}/$OTRO_MIN_CHARS mín.",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                )
+            }
         }
     }
 }
-
-
-
-
-
-
-
-//// Helper de padding para subpreguntas
-//fun somePaddingValuesParaSangria(left: androidx.compose.ui.unit.Dp) =
-//    PaddingValues(start = left, top = 8.dp, end = 0.dp, bottom = 4.dp)

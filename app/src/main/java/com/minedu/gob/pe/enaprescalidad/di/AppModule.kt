@@ -3,12 +3,19 @@ package com.minedu.gob.pe.enaprescalidad.di
 import android.content.Context
 import androidx.room.Room
 import com.minedu.gob.pe.enaprescalidad.BuildConfig
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.HogarDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MarcoTrabajoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraReentrevistaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.MuestraViviendaDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.PersonaDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.SurveyResponseDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.SurveyVersionDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.SyncDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.UsuarioDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.VisitaConglomeradoDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.VisitaHogarDao
+import com.minedu.gob.pe.enaprescalidad.data.local.dao.ViviendaDao
 import com.minedu.gob.pe.enaprescalidad.data.local.dao.surveys.SurveyConglomeradoDao
 import com.minedu.gob.pe.enaprescalidad.data.local.database.AppDataBase
 import dagger.Module
@@ -69,5 +76,24 @@ object AppModule {
 
     @Provides
     fun provideSurveyConglomeradoDao(db: AppDataBase): SurveyConglomeradoDao = db.surveyconglomeradoDao()
+
+    @Provides
+    fun provideViviendaDao(db: AppDataBase): ViviendaDao = db.viviendaDao()
+
+    @Provides
+    fun provideHogarDao(db: AppDataBase): HogarDao = db.hogarDao()
+
+    @Provides
+    fun providePersonaDao(db: AppDataBase): PersonaDao = db.personaDao()
+
+    @Provides
+    fun provideVisitaConglomeradoDao(db: AppDataBase): VisitaConglomeradoDao = db.visitaConglomeradoDao()
+
+    @Provides
+    fun provideVisitaHogarDao(db: AppDataBase): VisitaHogarDao = db.visitaHogarDao()
+    @Provides
+    fun provideSurveyVersionDao(db: AppDataBase): SurveyVersionDao = db.surveyVersionDao()
+    @Provides
+    fun provideSurveyResponseDao(db: AppDataBase): SurveyResponseDao = db.surveyResponseDao()
 
 }

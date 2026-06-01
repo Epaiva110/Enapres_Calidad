@@ -1,31 +1,37 @@
 package com.minedu.gob.pe.enaprescalidad.surveys.ui.component.page
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.unit.dp
 import com.minedu.gob.pe.enaprescalidad.surveys.models.ConditionEvaluator
+import com.minedu.gob.pe.enaprescalidad.surveys.models.ConstraintResult
 import com.minedu.gob.pe.enaprescalidad.surveys.models.Pagina
+import com.minedu.gob.pe.enaprescalidad.surveys.models.ValidationSeverity
 import com.minedu.gob.pe.enaprescalidad.surveys.ui.component.question.DynamicQuestionAdapter
-
+import com.minedu.gob.pe.enaprescalidad.surveys.ui.util.ConstraintHelper
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  PÁGINA
+//  SURVEY PAGE
+//
+//  Renderiza todas las preguntas visibles de una página usando
+//  DynamicQuestionAdapter (el dispatcher real de componentes).
+//
+//  Sistema de constraints:
+//   · variablesConError       → required sin responder → borde rojo en QuestionCard
+//   · variablesBlockedByError → constraint ERROR activo → editable = false
+//   · constraintResults       → lista completa para mostrar mensajes WARNING
+//                               inline debajo de cada pregunta afectada
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -33,113 +39,148 @@ fun SurveyPage(
     pagina: Pagina,
     respuestas: Map<String, Any?>,
     variableEnFoco: String,
-    variablesConError: Set<String> = emptySet(),
+    variablesConError: Set<String>,
+    variablesBlockedByError: Set<String> = emptySet(),
+    constraintResults: List<ConstraintResult> = emptyList(),
     evaluator: ConditionEvaluator,
-    minObsCaracteres: Int = 0,
-    soloLectura: Boolean = false,
+    minObsCaracteres: Int,
+    soloLectura: Boolean,
     onUpdateAnswer: (String, Any?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    // Preguntas que pasan su show_if (o no tienen)
+    val preguntasVisibles = pagina.preguntas.filter { preg ->
+        preg.show_if == null || evaluator.evaluate(preg.show_if, respuestas)
+    }
+
+    LazyColumn(
+        modifier        = modifier.fillMaxSize(),
+        contentPadding  = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Cabecera de sección
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
-                .padding(12.dp),
-        ) {
-            Text(
-                pagina.titulo_seccion.uppercase(),
-                style      = MaterialTheme.typography.labelMedium,
-                color      = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(pagina.titulo, style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold)
+        // ── Encabezado de página ─────────────────────────────────────────
+        item(key = "__header__") {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text  = pagina.titulo_seccion,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text       = pagina.titulo,
+                    style      = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        // ── Preguntas ─────────────────────────────────────────────────────
+        items(
+            items = preguntasVisibles,
+            key   = { it.variable },
+        ) { pregunta ->
 
-        // Preguntas filtradas por show_if
-        pagina.preguntas.forEach { pregunta ->
-            val visible = pregunta.show_if == null || evaluator.evaluate(pregunta.show_if, respuestas)
-            if (visible) {
+            // Una pregunta está bloqueada para edición si:
+            //   · soloLectura, O
+            //   · tiene un constraint ERROR activo en esta variable
+            val bloqueada = soloLectura ||
+                    ConstraintHelper.isBlocked(pregunta.variable, variablesBlockedByError)
+
+            // Mensaje de WARNING activo para esta variable (null si no hay)
+            val mensajeWarning = ConstraintHelper.warningMessage(
+                variable          = pregunta.variable,
+                constraintResults = constraintResults,
+            )
+
+            // Mensajes de ERROR de constraint (bloqueante, además del required)
+            val mensajesError = ConstraintHelper.errorMessages(
+                variable          = pregunta.variable,
+                constraintResults = constraintResults,
+            )
+
+            Column {
+                // Componente de pregunta real
                 DynamicQuestionAdapter(
                     pregunta          = pregunta,
                     respuestas        = respuestas,
                     variableEnFoco    = variableEnFoco,
                     variablesConError = variablesConError,
-                    editable          = !soloLectura,
+                    editable          = !bloqueada,
                     onValueChange     = onUpdateAnswer,
                 )
+
+                // ── Mensajes de ERROR de constraint (bajo la tarjeta) ─────
+                // Solo se muestran si la variable está bloqueada por ERROR;
+                // el QuestionCard ya pone el borde rojo por variablesConError.
+                mensajesError.forEach { msg ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter   = expandVertically(),
+                        exit    = shrinkVertically(),
+                    ) {
+                        ConstraintMessageRow(
+                            message  = msg,
+                            severity = ValidationSeverity.ERROR,
+                        )
+                    }
+                }
+
+                // ── Mensaje de WARNING de constraint (bajo la tarjeta) ────
+                // Informativo: no bloquea ni la selección ni el avance.
+                AnimatedVisibility(
+                    visible = mensajeWarning != null,
+                    enter   = expandVertically(),
+                    exit    = shrinkVertically(),
+                ) {
+                    mensajeWarning?.let { msg ->
+                        ConstraintMessageRow(
+                            message  = msg,
+                            severity = ValidationSeverity.WARNING,
+                        )
+                    }
+                }
             }
         }
-
-        if (minObsCaracteres > 0) {
-            SectionObservationField(
-                obsKey = "OBS_${pagina.seccion_id}",
-                texto = respuestas["OBS_${pagina.seccion_id}"]?.toString().orEmpty(),
-                minCaracteres = minObsCaracteres,
-                tieneError = "OBS_${pagina.seccion_id}" in variablesConError,
-                soloLectura = soloLectura,
-                onValueChange = onUpdateAnswer,
-            )
-        }
-
-        Spacer(Modifier.height(32.dp))
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONSTRAINT MESSAGE ROW
+//
+//  Fila de mensaje que aparece debajo de la pregunta cuando hay un constraint
+//  activo. El color y el ícono cambian según la severidad:
+//   · ERROR   → rojo  (la pregunta ya está deshabilitada por isBlocked)
+//   · WARNING → ámbar (informativo, no bloquea nada)
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun SectionObservationField(
-    obsKey: String,
-    texto: String,
-    minCaracteres: Int,
-    tieneError: Boolean,
-    soloLectura: Boolean,
-    onValueChange: (String, Any?) -> Unit,
+private fun ConstraintMessageRow(
+    message: String,
+    severity: ValidationSeverity,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = Modifier
+    val color = when (severity) {
+        ValidationSeverity.ERROR   -> MaterialTheme.colorScheme.error
+        ValidationSeverity.WARNING -> MaterialTheme.colorScheme.error.copy(alpha = 0.75f)
+    }
+
+    Row(
+        modifier             = modifier
             .fillMaxWidth()
-            .background(
-                if (tieneError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.12f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                MaterialTheme.shapes.medium
-            )
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(start = 8.dp, top = 4.dp, end = 8.dp),
+        verticalAlignment    = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            text = "Observación de sección *",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = if (tieneError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        Icon(
+            imageVector        = Icons.Default.Warning,
+            contentDescription = null,
+            tint               = color,
+            modifier           = Modifier.size(14.dp),
         )
         Text(
-            text = "Mínimo $minCaracteres caracteres. También editable desde el ícono de notas en la barra superior.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        OutlinedTextField(
-            value = texto,
-            onValueChange = { if (!soloLectura) onValueChange(obsKey, it) },
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = soloLectura,
-            enabled = !soloLectura,
-            minLines = 3,
-            isError = tieneError,
-            supportingText = {
-                Text("${texto.trim().length}/$minCaracteres")
-            },
-            placeholder = { Text("Escriba la observación de esta sección…") },
+            text  = message,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
         )
     }
 }

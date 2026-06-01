@@ -7,7 +7,6 @@ import com.minedu.gob.pe.enaprescalidad.data.local.entity.MuestraConglomeradoEnt
 import com.minedu.gob.pe.enaprescalidad.data.repository.ConglomeradoListRepository
 import com.minedu.gob.pe.enaprescalidad.surveys.SurveyEncuestaProgress
 import com.minedu.gob.pe.enaprescalidad.surveys.SurveyProgressHelper
-import com.minedu.gob.pe.enaprescalidad.surveys.catalog.ConglomeradoSurveyCatalog
 import com.minedu.gob.pe.enaprescalidad.data.repository.EnvioResult
 import com.minedu.gob.pe.enaprescalidad.utils.hasInternet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +18,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.lifecycle.SavedStateHandle
+import com.minedu.gob.pe.enaprescalidad.surveys.catalog.SurveyCatalog
+import com.minedu.gob.pe.enaprescalidad.surveys.catalog.SurveyType
 import com.minedu.gob.pe.enaprescalidad.ui.navigation.NavigationManager
 import kotlinx.coroutines.flow.drop
 import kotlinx.serialization.descriptors.StructureKind
@@ -34,7 +35,7 @@ class ConglomeradoViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
     private val repo: ConglomeradoListRepository,
     private val surveyDao: SurveyConglomeradoDao,
-    private val surveyCatalog: ConglomeradoSurveyCatalog,
+    private val surveyCatalog: SurveyCatalog,
     private val savedState: SavedStateHandle,
 ) : ViewModel(), ConglomeradoActions {
 
@@ -166,8 +167,8 @@ class ConglomeradoViewModel @Inject constructor(
     ): Map<Int, SurveyEncuestaProgress> {
         if (muestraIds.isEmpty()) return emptyMap()
 
-        val survey = surveyCatalog.survey
-        val surveyId = surveyCatalog.surveyId
+        val survey = surveyCatalog.getSurvey(SurveyType.CONGLOMERADO)
+        val surveyId = surveyCatalog.getSurveyId(SurveyType.CONGLOMERADO)
         val entidades = surveyDao.obtenerRespuestasPorMuestras(muestraIds, surveyId)
         val porMuestra = entidades.groupBy { it.muestra_id }
 

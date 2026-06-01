@@ -1,0 +1,105 @@
+
+{
+  "survey_id": "ENAPRES_VIVIENDA_2026",
+  "title": "Encuesta de Vivienda",
+  "config": {
+    "color_resaltado": "#1565C0",
+    "min_caracteres_observacion": 3,
+    "guardar_automatico": true,
+    "mostrar_progreso": true
+  },
+  "paginas": [
+    {
+      "id_pagina": 1,
+      "seccion_id": "SEC_100",
+      "titulo_seccion": "Sección 100",
+      "titulo": "Identificación de la Vivienda",
+      "preguntas": [
+        {
+          "variable": "tipo_vivienda",
+          "type": "single",
+          "label": "Tipo de vivienda",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Casa independiente" },
+            { "value": "2", "label": "Departamento en edificio" },
+            { "value": "3", "label": "Vivienda en quinta" },
+            { "value": "9", "label": "Otro tipo" }
+          ]
+        },
+        {
+          "variable": "material_paredes",
+          "type": "single",
+          "label": "Material predominante de las paredes",
+          "required": true,
+          "options": [
+            { "value": "1", "label": "Ladrillo o bloque de cemento" },
+            { "value": "2", "label": "Adobe o tapia" },
+            { "value": "3", "label": "Madera" },
+            { "value": "9", "label": "Otro" }
+          ]
+        }
+      ]
+    },
+    {
+      "id_pagina": 2,
+      "seccion_id": "SEC_200",
+      "titulo_seccion": "Sección 200",
+      "titulo": "Hogares de la vivienda",
+      "preguntas": [
+        {
+          "variable": "hogares_registrados",
+          "type": "entity_hogar",
+          "label": "Hogares identificados en esta vivienda",
+          "hint": "Registre todos los hogares que comparten esta vivienda.",
+          "required": true,
+          "entity_config": {
+            "min_registros": 1,
+            "max_registros": 10,
+            "nivel_padre": "vivienda"
+          }
+        }
+      ]
+    },
+    {
+      "id_pagina": 3,
+      "seccion_id": "SEC_300",
+      "titulo_seccion": "Sección 300",
+      "titulo": "Miembros del hogar",
+      "preguntas": [
+        {
+          "variable": "personas_registradas",
+          "type": "entity_persona",
+          "label": "Miembros del hogar",
+          "hint": "Registre todos los miembros que residen habitualmente en este hogar.",
+          "required": true,
+          "entity_config": {
+            "min_registros": 1,
+            "nivel_padre": "hogar"
+          }
+        }
+      ]
+    },
+    {
+      "id_pagina": 4,
+      "seccion_id": "SEC_400",
+      "titulo_seccion": "Sección 400",
+      "titulo": "Visitas al hogar",
+      "preguntas": [
+        {
+          "variable": "visitas_hogar",
+          "type": "entity_visita",
+          "label": "Registro de visitas",
+          "hint": "Registre cada visita realizada a este hogar.",
+          "required": true,
+          "entity_config": {
+            "min_registros": 1,
+            "max_registros": 5,
+            "nivel_padre": "hogar"
+          }
+        }
+      ]
+    }
+  ]
+}
+
